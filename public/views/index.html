@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>ToDo | Gestión de Tareas</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div class="container fade-in" id="app-root">
+    <button class="theme-toggle secondary" id="theme-btn" title="Cambiar tema">🌙</button>
+    <h1>ToDo <span class="badge">TS</span></h1>
+    <div class="top-bar">
+      <form id="task-form" autocomplete="off">
+        <input type="text" id="title" placeholder="Título *" required maxlength="255" />
+        <textarea id="description" placeholder="Descripción (opcional)"></textarea>
+        <button type="submit">➕ Añadir</button>
+      </form>
+    </div>
+    <div class="status-bar">
+      <div><strong id="count-total">0</strong> total</div>
+      <div><strong id="count-pending">0</strong> pendientes</div>
+      <div><strong id="count-completed">0</strong> completadas</div>
+      <div class="filters">
+        <button class="secondary" data-filter="all">Todas</button>
+        <button class="secondary" data-filter="active">Activas</button>
+        <button class="secondary" data-filter="completed">Completadas</button>
+        <button class="secondary" id="clear-completed" title="Eliminar completadas">🗑 Limpiar</button>
+      </div>
+    </div>
+    <ul id="tasks"></ul>
+    <div class="empty" id="empty-state" style="display:none;">Sin tareas todavía. ¡Agrega la primera! ✨</div>
+  </div>
+  <script src="/js/app.js"></script>
+</body>
+</html>
