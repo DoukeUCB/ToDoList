@@ -1,18 +1,13 @@
 let allTasks = [];
-let currentFilter = 'all';
+let currentFilter = localStorage.getItem('filter') || 'all';
 
-async function fetchTasks() {
-  const res = await fetch('/api/tasks');
-  if (!res.ok) throw new Error('Error cargando tareas');
-  return res.json();
-}
-
+// --- Helpers ---
 function esc(str='') {
   return str.replace(/[&<>"]?/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]||c));
 }
 
 function taskItemHtml(task) {
-  return `<li data-id="${task.id}" class="${task.completed ? 'completed' : ''}">
+  return `<li data-id="${task.id}" class="${task.completed ? 'completed' : ''} fade-in">
     <input type="checkbox" class="toggle" ${task.completed ? 'checked' : ''} />
     <div>
       <div class="title">${esc(task.title)}</div>
@@ -39,19 +34,19 @@ function updateCounters() {
   document.getElementById('count-pending').textContent = pending;
 }
 
-async function renderTasks() {
-  try {
-    allTasks = await fetchTasks();
-    const list = document.getElementById('tasks');
-    const filtered = applyFilter(allTasks);
-    list.innerHTML = filtered.map(taskItemHtml).join('');
-    document.getElementById('empty-state').style.display = filtered.length ? 'none' : 'block';
-    updateCounters();
-  } catch (e) {
-    alert(e.message);
-  }
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.display = "block";
+  setTimeout(()=> t.style.display = "none", 3000);
 }
 
+// --- API ---
+async function fetchTasks() {
+  const res = await fetch('/api/tasks');
+  if (!res.ok) throw new Error('Error cargando tareas');
+  return res.json();
+}
 async function addTask(title, description) {
   const res = await fetch('/api/tasks', {
     method: 'POST',
@@ -62,29 +57,42 @@ async function addTask(title, description) {
     const data = await res.json().catch(()=>({}));
     throw new Error(data.message || 'Error creando tarea');
   }
-  renderTasks();
+  const newTask = await res.json();
+  allTasks.push(newTask);
+  renderList();
 }
-
 async function toggleTask(id, completed) {
   await fetch(`/api/tasks/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ completed })
   });
-  renderTasks();
+  const task = allTasks.find(t=>t.id==id);
+  if (task) task.completed = completed;
+  renderList();
 }
-
 async function deleteTask(id) {
   await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
-  renderTasks();
+  allTasks = allTasks.filter(t=>t.id!=id);
+  renderList();
 }
-
 async function clearCompleted() {
   const completed = allTasks.filter(t => t.completed);
   await Promise.all(completed.map(t => fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })));
-  renderTasks();
+  allTasks = allTasks.filter(t=>!t.completed);
+  renderList();
 }
 
+// --- Render ---
+function renderList() {
+  const list = document.getElementById('tasks');
+  const filtered = applyFilter(allTasks);
+  list.innerHTML = filtered.map(taskItemHtml).join('');
+  document.getElementById('empty-state').style.display = filtered.length ? 'none' : 'block';
+  updateCounters();
+}
+
+// --- Eventos ---
 document.getElementById('task-form').addEventListener('submit', async e => {
   e.preventDefault();
   const titleEl = document.getElementById('title');
@@ -97,7 +105,7 @@ document.getElementById('task-form').addEventListener('submit', async e => {
     e.target.reset();
     titleEl.focus();
   } catch(err){
-    alert(err.message);
+    showToast(err.message);
   }
 });
 
@@ -107,7 +115,6 @@ document.getElementById('tasks').addEventListener('change', e => {
     toggleTask(li.dataset.id, e.target.checked);
   }
 });
-
 document.getElementById('tasks').addEventListener('click', e => {
   if (e.target.classList.contains('delete')) {
     const li = e.target.closest('li');
@@ -118,18 +125,16 @@ document.getElementById('tasks').addEventListener('click', e => {
 document.querySelectorAll('.filters button[data-filter]').forEach(btn => {
   btn.addEventListener('click', () => {
     currentFilter = btn.dataset.filter;
+    localStorage.setItem('filter', currentFilter);
     document.querySelectorAll('.filters button[data-filter]').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
-    const list = document.getElementById('tasks');
-    const filtered = applyFilter(allTasks);
-    list.innerHTML = filtered.map(taskItemHtml).join('');
-    document.getElementById('empty-state').style.display = filtered.length ? 'none' : 'block';
+    renderList();
   });
 });
 
 document.getElementById('clear-completed').addEventListener('click', () => clearCompleted());
 
-// Dark / Light mode
+// --- Tema ---
 const themeBtn = document.getElementById('theme-btn');
 function applyTheme(theme){
   document.documentElement.classList.toggle('dark', theme==='dark');
@@ -140,4 +145,13 @@ const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers
 applyTheme(savedTheme);
 themeBtn.addEventListener('click', ()=> applyTheme(document.documentElement.classList.contains('dark') ? 'light':'dark'));
 
-renderTasks();
+// --- Inicio ---
+(async function init(){
+  try {
+    allTasks = await fetchTasks();
+    document.querySelector(`.filters button[data-filter="${currentFilter}"]`)?.classList.add("active");
+    renderList();
+  } catch(e){
+    showToast(e.message);
+  }
+})();
