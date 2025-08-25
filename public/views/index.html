@@ -14,7 +14,7 @@
       <form id="task-form" autocomplete="off">
         <input type="text" id="title" placeholder="Título *" required maxlength="255" />
         <textarea id="description" placeholder="Descripción (opcional)"></textarea>
-        <button type="submit">➕ Añadir</button>
+        <button type="submit">Añadir</button>
       </form>
     </div>
     <div class="status-bar">
@@ -30,6 +30,17 @@
     </div>
     <ul id="tasks"></ul>
     <div class="empty" id="empty-state" style="display:none;">Sin tareas todavía. ¡Agrega la primera! ✨</div>
+  </div>
+
+  <!-- Modal de confirmación -->
+  <div id="confirm-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <p>¿Estás seguro de que quieres eliminar esta tarea?</p>
+      <div class="modal-actions">
+        <button id="confirm-delete-btn" class="danger">Eliminar</button>
+        <button id="cancel-delete-btn" class="secondary">Cancelar</button>
+      </div>
+    </div>
   </div>
 
   <!-- Notificaciones -->

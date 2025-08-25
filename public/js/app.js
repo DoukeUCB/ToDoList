@@ -1,6 +1,12 @@
 let allTasks = [];
 let currentFilter = localStorage.getItem('filter') || 'all';
 
+// --- Añade estas líneas al principio de tu script, con las demás declaraciones de variables ---
+const confirmModal = document.getElementById('confirm-modal');
+const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+let taskToDeleteId = null;
+
 // --- Helpers ---
 function esc(str='') {
   return str.replace(/[&<>"]?/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]||c));
@@ -116,9 +122,18 @@ document.getElementById('tasks').addEventListener('change', e => {
   }
 });
 document.getElementById('tasks').addEventListener('click', e => {
-  if (e.target.classList.contains('delete')) {
-    const li = e.target.closest('li');
-    deleteTask(li.dataset.id);
+  const target = e.target;
+  const taskElement = target.closest('li');
+  if (!taskElement) return;
+
+  const taskId = parseInt(taskElement.dataset.id);
+
+  if (target.matches('.delete')) {
+    // En lugar de eliminar, muestra el modal
+    taskToDeleteId = taskId;
+    confirmModal.style.display = 'flex';
+  } else if (target.matches('.toggle')) {
+    toggleTask(taskId, target.checked);
   }
 });
 
@@ -155,3 +170,26 @@ themeBtn.addEventListener('click', ()=> applyTheme(document.documentElement.clas
     showToast(e.message);
   }
 })();
+
+// Si el usuario confirma la eliminación
+confirmDeleteBtn.addEventListener('click', () => {
+    if (taskToDeleteId !== null) {
+        deleteTask(taskToDeleteId);
+        taskToDeleteId = null;
+    }
+    confirmModal.style.display = 'none';
+});
+
+// Si el usuario cancela
+cancelDeleteBtn.addEventListener('click', () => {
+    taskToDeleteId = null;
+    confirmModal.style.display = 'none';
+});
+
+// Cierra el modal si se hace clic fuera de él
+window.addEventListener('click', (e) => {
+    if (e.target === confirmModal) {
+        taskToDeleteId = null;
+        confirmModal.style.display = 'none';
+    }
+});
