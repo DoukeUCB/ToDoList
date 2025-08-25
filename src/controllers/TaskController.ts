@@ -50,6 +50,7 @@ export class TaskController {
       if (!existing) return res.status(404).json({ message: 'Task not found' });
       await service.delete(id);
       res.status(204).send();
+      return res.json({ message: 'Task deleted successfully' });
     } catch (e) { next(e); }
   }
 }

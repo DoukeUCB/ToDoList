@@ -19,6 +19,7 @@ function taskItemHtml(task) {
       ${task.description ? `<small>${esc(task.description)}</small>` : ''}
     </div>
     <div class="actions">
+      <button class="edit secondary" title="Editar">✏️</button>
       <button class="delete danger" title="Eliminar">✕</button>
     </div>
   </li>`;
@@ -108,10 +109,46 @@ document.getElementById('tasks').addEventListener('change', e => {
   }
 });
 
-document.getElementById('tasks').addEventListener('click', e => {
+document.getElementById('tasks').addEventListener('click', async e => {
+  const li = e.target.closest('li');
+  if (!li) return;
+
+  const id = Number(li.dataset.id);
+
+  // Eliminar
   if (e.target.classList.contains('delete')) {
-    const li = e.target.closest('li');
-    deleteTask(li.dataset.id);
+    await deleteTask(id);
+  }
+
+  // Editar
+  if (e.target.classList.contains('edit')) {
+    const task = allTasks.find(t => t.id === id);
+    if (!task) return;
+
+    const titleEl = document.getElementById('title');
+    const descEl = document.getElementById('description');
+    titleEl.value = task.title;
+    descEl.value = task.description || '';
+
+    const form = document.getElementById('task-form');
+    const formBtn = form.querySelector('button[type="submit"]');
+    formBtn.textContent = '💾 Guardar';
+
+    // Remueve cualquier listener anterior para no duplicar
+    form.replaceWith(form.cloneNode(true));
+    const newForm = document.getElementById('task-form');
+
+    newForm.addEventListener('submit', async ev => {
+      ev.preventDefault();
+      await fetch(`/api/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: titleEl.value, description: descEl.value })
+      });
+      newForm.reset();
+      formBtn.textContent = '➕ Añadir';
+      renderTasks();
+    });
   }
 });
 
