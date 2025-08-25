@@ -14,6 +14,7 @@ function taskItemHtml(task) {
       ${task.description ? `<small>${esc(task.description)}</small>` : ''}
     </div>
     <div class="actions">
+      <button class="edit secondary" title="Editar">✏️</button>
       <button class="delete danger" title="Eliminar">✕</button>
     </div>
   </li>`;
@@ -115,12 +116,43 @@ document.getElementById('tasks').addEventListener('change', e => {
     toggleTask(li.dataset.id, e.target.checked);
   }
 });
-document.getElementById('tasks').addEventListener('click', e => {
+
+// ELIMINAR Y EDITAR 
+document.getElementById('tasks').addEventListener('click', async e => {
+  const li = e.target.closest('li');
+  if (!li) return;
+  const id = Number(li.dataset.id);
+
+  
   if (e.target.classList.contains('delete')) {
-    const li = e.target.closest('li');
-    deleteTask(li.dataset.id);
+    await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+    allTasks = allTasks.filter(t => t.id !== id); // actualizamos el array
+    renderList(); // CORRECCIÓN: antes tenías renderTasks()
+  }
+
+  
+  if (e.target.classList.contains('edit')) {
+    const task = allTasks.find(t => t.id === id);
+    if (!task) return;
+
+    const newTitle = prompt('Editar título', task.title);
+    if (newTitle === null) return; 
+    const newDescription = prompt('Editar descripción', task.description || '');
+
+    await fetch(`/api/tasks/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newTitle, description: newDescription })
+    });
+
+   
+    task.title = newTitle;
+    task.description = newDescription;
+
+    renderList(); 
   }
 });
+
 
 document.querySelectorAll('.filters button[data-filter]').forEach(btn => {
   btn.addEventListener('click', () => {
