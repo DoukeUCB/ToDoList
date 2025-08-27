@@ -1,10 +1,25 @@
 let allTasks = [];
 let currentFilter = localStorage.getItem('filter') || 'all';
 
+// Modal de eliminación
 const confirmModal = document.getElementById('confirm-modal');
 const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
 const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
 let taskToDeleteId = null;
+
+// Modal de edición
+const editModal = document.getElementById('edit-modal');
+const editForm = document.getElementById('edit-form');
+const editTitleInput = document.getElementById('edit-title');
+const editDescriptionInput = document.getElementById('edit-description');
+const confirmEditBtn = document.getElementById('confirm-edit-btn');
+const cancelEditBtn = document.getElementById('cancel-edit-btn');
+let taskToEditId = null;
+
+// Modal de limpiar
+const clearModal = document.getElementById('clear-modal');
+const confirmClearBtn = document.getElementById('confirm-clear-btn');
+const cancelClearBtn = document.getElementById('cancel-clear-btn');
 
 // --- Helpers ---
 function esc(str='') {
@@ -83,13 +98,8 @@ async function deleteTask(id) {
   renderList();
 }
 async function clearCompleted() {
-  const confirmDelete = confirm("¿Está seguro? Se borrarán todas las tareas completadas.");
-    if (confirmDelete) {
-        const completed = allTasks.filter(t => t.completed);
-        await Promise.all(completed.map(t => fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })));
-        allTasks = allTasks.filter(t=>!t.completed);
-        renderList();
-    }
+  // Mostrar modal de confirmación en lugar del confirm nativo
+  clearModal.style.display = 'flex';
 }
 
 function renderList() {
@@ -141,20 +151,12 @@ document.getElementById('tasks').addEventListener('click', async e => {
     const task = allTasks.find(t => t.id === taskId);
     if (!task) return;
 
-    const newTitle = prompt('Editar título', task.title);
-    if (newTitle === null) return; 
-    const newDescription = prompt('Editar descripción', task.description || '');
-
-    await fetch(`/api/tasks/${taskId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newTitle, description: newDescription })
-    });
-
-    task.title = newTitle;
-    task.description = newDescription;
-
-    renderList(); 
+    // Mostrar modal de edición en lugar del prompt
+    taskToEditId = taskId;
+    editTitleInput.value = task.title;
+    editDescriptionInput.value = task.description || '';
+    editModal.style.display = 'flex';
+    editTitleInput.focus();
   }
 });
 
@@ -202,6 +204,7 @@ filterButtons.forEach(button => {
   });
 });
 
+// Event listeners para modal de eliminación
 confirmDeleteBtn.addEventListener('click', () => {
     if (taskToDeleteId !== null) {
         deleteTask(taskToDeleteId);
@@ -215,9 +218,71 @@ cancelDeleteBtn.addEventListener('click', () => {
     confirmModal.style.display = 'none';
 });
 
+// Event listeners para modal de edición
+editForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (taskToEditId !== null) {
+        const newTitle = editTitleInput.value.trim();
+        const newDescription = editDescriptionInput.value.trim();
+        
+        if (!newTitle) return;
+        
+        try {
+            await fetch(`/api/tasks/${taskToEditId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: newTitle, description: newDescription })
+            });
+
+            const task = allTasks.find(t => t.id === taskToEditId);
+            if (task) {
+                task.title = newTitle;
+                task.description = newDescription;
+            }
+
+            renderList();
+            taskToEditId = null;
+            editModal.style.display = 'none';
+        } catch (err) {
+            showToast('Error al actualizar la tarea');
+        }
+    }
+});
+
+cancelEditBtn.addEventListener('click', () => {
+    taskToEditId = null;
+    editModal.style.display = 'none';
+});
+
+// Event listeners para modal de limpiar
+confirmClearBtn.addEventListener('click', async () => {
+    try {
+        const completed = allTasks.filter(t => t.completed);
+        await Promise.all(completed.map(t => fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })));
+        allTasks = allTasks.filter(t => !t.completed);
+        renderList();
+        showToast('Tareas completadas eliminadas');
+    } catch (err) {
+        showToast('Error al eliminar tareas completadas');
+    }
+    clearModal.style.display = 'none';
+});
+
+cancelClearBtn.addEventListener('click', () => {
+    clearModal.style.display = 'none';
+});
+
+// Cerrar modales al hacer clic fuera de ellos
 window.addEventListener('click', (e) => {
     if (e.target === confirmModal) {
         taskToDeleteId = null;
         confirmModal.style.display = 'none';
+    }
+    if (e.target === editModal) {
+        taskToEditId = null;
+        editModal.style.display = 'none';
+    }
+    if (e.target === clearModal) {
+        clearModal.style.display = 'none';
     }
 });
