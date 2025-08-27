@@ -210,6 +210,11 @@ input[type="checkbox"], input[type="radio"] {
   margin-right: 6px;
 }
 
+.filters .secondary.active-filter {
+  background-color: #007bff; /* azul ejemplo */
+  color: white;
+  font-weight: bold;
+  
 /* Estilos del Modal */
 .modal {
   position: fixed;

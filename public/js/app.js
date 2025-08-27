@@ -83,10 +83,13 @@ async function deleteTask(id) {
   renderList();
 }
 async function clearCompleted() {
-  const completed = allTasks.filter(t => t.completed);
-  await Promise.all(completed.map(t => fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })));
-  allTasks = allTasks.filter(t=>!t.completed);
-  renderList();
+  const confirmDelete = confirm("¿Está seguro? Se borrarán todas las tareas completadas.");
+    if (confirmDelete) {
+        const completed = allTasks.filter(t => t.completed);
+        await Promise.all(completed.map(t => fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })));
+        allTasks = allTasks.filter(t=>!t.completed);
+        renderList();
+    }
 }
 
 function renderList() {
@@ -190,6 +193,18 @@ themeBtn.addEventListener('click', ()=> applyTheme(document.documentElement.clas
   }
 })();
 
+// Seleccionamos todos los botones de filtro
+const filterButtons = document.querySelectorAll(".filters .secondary");
+
+filterButtons.forEach(button => {
+  button.addEventListener("click", function () {
+    // Quitamos la clase activa de todos
+    filterButtons.forEach(btn => btn.classList.remove("active-filter"));
+
+    // Agregamos la clase activa al botón presionado
+    this.classList.add("active-filter");
+  });
+  
 confirmDeleteBtn.addEventListener('click', () => {
     if (taskToDeleteId !== null) {
         deleteTask(taskToDeleteId);
