@@ -77,10 +77,13 @@ async function deleteTask(id) {
   renderList();
 }
 async function clearCompleted() {
-  const completed = allTasks.filter(t => t.completed);
-  await Promise.all(completed.map(t => fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })));
-  allTasks = allTasks.filter(t=>!t.completed);
-  renderList();
+  const confirmDelete = confirm("¿Está seguro? Se borrarán todas las tareas completadas.");
+    if (confirmDelete) {
+        const completed = allTasks.filter(t => t.completed);
+        await Promise.all(completed.map(t => fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })));
+        allTasks = allTasks.filter(t=>!t.completed);
+        renderList();
+    }
 }
 
 // --- Render ---
