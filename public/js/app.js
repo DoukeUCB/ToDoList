@@ -1,6 +1,11 @@
 let allTasks = [];
 let currentFilter = localStorage.getItem('filter') || 'all';
 
+const confirmModal = document.getElementById('confirm-modal');
+const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+let taskToDeleteId = null;
+
 // --- Helpers ---
 function esc(str='') {
   return str.replace(/[&<>"]?/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]||c));
@@ -84,7 +89,6 @@ async function clearCompleted() {
   renderList();
 }
 
-// --- Render ---
 function renderList() {
   const list = document.getElementById('tasks');
   const filtered = applyFilter(allTasks);
@@ -93,7 +97,6 @@ function renderList() {
   updateCounters();
 }
 
-// --- Eventos ---
 document.getElementById('task-form').addEventListener('submit', async e => {
   e.preventDefault();
   const titleEl = document.getElementById('title');
@@ -116,36 +119,35 @@ document.getElementById('tasks').addEventListener('change', e => {
     toggleTask(li.dataset.id, e.target.checked);
   }
 });
-
-// ELIMINAR Y EDITAR 
 document.getElementById('tasks').addEventListener('click', async e => {
-  const li = e.target.closest('li');
-  if (!li) return;
-  const id = Number(li.dataset.id);
+  const target = e.target;
+  const taskElement = target.closest('li');
+  if (!taskElement) return;
 
-  
-  if (e.target.classList.contains('delete')) {
-    await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
-    allTasks = allTasks.filter(t => t.id !== id); // actualizamos el array
-    renderList(); // CORRECCIÓN: antes tenías renderTasks()
+  const taskId = parseInt(taskElement.dataset.id);
+
+  if (target.matches('.delete')) {
+    // En lugar de eliminar, muestra el modal
+    taskToDeleteId = taskId;
+    confirmModal.style.display = 'flex';
+  } else if (target.matches('.toggle')) {
+    toggleTask(taskId, target.checked);
   }
 
-  
-  if (e.target.classList.contains('edit')) {
-    const task = allTasks.find(t => t.id === id);
+    if (e.target.classList.contains('edit')) {
+    const task = allTasks.find(t => t.id === taskId);
     if (!task) return;
 
     const newTitle = prompt('Editar título', task.title);
     if (newTitle === null) return; 
     const newDescription = prompt('Editar descripción', task.description || '');
 
-    await fetch(`/api/tasks/${id}`, {
+    await fetch(`/api/tasks/${taskId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: newTitle, description: newDescription })
     });
 
-   
     task.title = newTitle;
     task.description = newDescription;
 
@@ -187,3 +189,23 @@ themeBtn.addEventListener('click', ()=> applyTheme(document.documentElement.clas
     showToast(e.message);
   }
 })();
+
+confirmDeleteBtn.addEventListener('click', () => {
+    if (taskToDeleteId !== null) {
+        deleteTask(taskToDeleteId);
+        taskToDeleteId = null;
+    }
+    confirmModal.style.display = 'none';
+});
+
+cancelDeleteBtn.addEventListener('click', () => {
+    taskToDeleteId = null;
+    confirmModal.style.display = 'none';
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === confirmModal) {
+        taskToDeleteId = null;
+        confirmModal.style.display = 'none';
+    }
+});
