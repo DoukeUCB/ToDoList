@@ -214,8 +214,9 @@ input[type="checkbox"], input[type="radio"] {
   background-color: #007bff; /* azul ejemplo */
   color: white;
   font-weight: bold;
-  
-/* Estilos del Modal */
+}
+
+  /* Estilos del Modal */
 .modal {
   position: fixed;
   z-index: 1000;

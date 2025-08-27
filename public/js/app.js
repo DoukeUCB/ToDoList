@@ -204,7 +204,8 @@ filterButtons.forEach(button => {
     // Agregamos la clase activa al botón presionado
     this.classList.add("active-filter");
   });
-  
+});
+
 confirmDeleteBtn.addEventListener('click', () => {
     if (taskToDeleteId !== null) {
         deleteTask(taskToDeleteId);
