@@ -32,13 +32,39 @@
     <div class="empty" id="empty-state" style="display:none;">Sin tareas todavía. ¡Agrega la primera! ✨</div>
   </div>
 
-  <!-- Modal de confirmación -->
+  <!-- Modal de confirmación de eliminación -->
   <div id="confirm-modal" class="modal" style="display:none;">
     <div class="modal-content">
       <p>¿Estás seguro de que quieres eliminar esta tarea?</p>
       <div class="modal-actions">
         <button id="confirm-delete-btn" class="danger">Eliminar</button>
         <button id="cancel-delete-btn" class="secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de edición -->
+  <div id="edit-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h3>Editar Tarea</h3>
+      <form id="edit-form">
+        <input type="text" id="edit-title" placeholder="Título *" required maxlength="255" />
+        <textarea id="edit-description" placeholder="Descripción (opcional)"></textarea>
+        <div class="modal-actions">
+          <button type="submit" id="confirm-edit-btn">Guardar</button>
+          <button type="button" id="cancel-edit-btn" class="secondary">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación de limpiar -->
+  <div id="clear-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <p>¿Estás seguro de que quieres eliminar todas las tareas completadas?</p>
+      <div class="modal-actions">
+        <button id="confirm-clear-btn" class="danger">Limpiar</button>
+        <button id="cancel-clear-btn" class="secondary">Cancelar</button>
       </div>
     </div>
   </div>
