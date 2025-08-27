@@ -1,6 +1,11 @@
 let allTasks = [];
 let currentFilter = localStorage.getItem('filter') || 'all';
 
+const confirmModal = document.getElementById('confirm-modal');
+const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+let taskToDeleteId = null;
+
 // --- Helpers ---
 function esc(str='') {
   return str.replace(/[&<>"]?/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]||c));
@@ -14,6 +19,7 @@ function taskItemHtml(task) {
       ${task.description ? `<small>${esc(task.description)}</small>` : ''}
     </div>
     <div class="actions">
+      <button class="edit secondary" title="Editar">✏️</button>
       <button class="delete danger" title="Eliminar">✕</button>
     </div>
   </li>`;
@@ -86,7 +92,6 @@ async function clearCompleted() {
     }
 }
 
-// --- Render ---
 function renderList() {
   const list = document.getElementById('tasks');
   const filtered = applyFilter(allTasks);
@@ -95,7 +100,6 @@ function renderList() {
   updateCounters();
 }
 
-// --- Eventos ---
 document.getElementById('task-form').addEventListener('submit', async e => {
   e.preventDefault();
   const titleEl = document.getElementById('title');
@@ -118,12 +122,42 @@ document.getElementById('tasks').addEventListener('change', e => {
     toggleTask(li.dataset.id, e.target.checked);
   }
 });
-document.getElementById('tasks').addEventListener('click', e => {
-  if (e.target.classList.contains('delete')) {
-    const li = e.target.closest('li');
-    deleteTask(li.dataset.id);
+document.getElementById('tasks').addEventListener('click', async e => {
+  const target = e.target;
+  const taskElement = target.closest('li');
+  if (!taskElement) return;
+
+  const taskId = parseInt(taskElement.dataset.id);
+
+  if (target.matches('.delete')) {
+    // En lugar de eliminar, muestra el modal
+    taskToDeleteId = taskId;
+    confirmModal.style.display = 'flex';
+  } else if (target.matches('.toggle')) {
+    toggleTask(taskId, target.checked);
+  }
+
+    if (e.target.classList.contains('edit')) {
+    const task = allTasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const newTitle = prompt('Editar título', task.title);
+    if (newTitle === null) return; 
+    const newDescription = prompt('Editar descripción', task.description || '');
+
+    await fetch(`/api/tasks/${taskId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newTitle, description: newDescription })
+    });
+
+    task.title = newTitle;
+    task.description = newDescription;
+
+    renderList(); 
   }
 });
+
 
 document.querySelectorAll('.filters button[data-filter]').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -170,4 +204,23 @@ filterButtons.forEach(button => {
     // Agregamos la clase activa al botón presionado
     this.classList.add("active-filter");
   });
+  
+confirmDeleteBtn.addEventListener('click', () => {
+    if (taskToDeleteId !== null) {
+        deleteTask(taskToDeleteId);
+        taskToDeleteId = null;
+    }
+    confirmModal.style.display = 'none';
+});
+
+cancelDeleteBtn.addEventListener('click', () => {
+    taskToDeleteId = null;
+    confirmModal.style.display = 'none';
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === confirmModal) {
+        taskToDeleteId = null;
+        confirmModal.style.display = 'none';
+    }
 });
