@@ -148,11 +148,9 @@ input.toggle { transform: scale(1.35); cursor: pointer; accent-color: var(--prim
 }
 .theme-toggle:hover { transform: rotate(15deg); }
 
-/* ✅ Animaciones */
 li.fade-in { animation: fade .4s ease; }
 @keyframes fade { from {opacity:0; transform:translateY(6px);} to {opacity:1; transform:translateY(0);} }
 
-/* ✅ Toast */
 .toast {
   position: fixed;
   bottom: 20px;
@@ -165,7 +163,6 @@ li.fade-in { animation: fade .4s ease; }
   animation: fadeUp .3s ease;
   z-index: 1000;
 }
-/* ✅ Labels */
 label {
   font-size: .9rem;
   font-weight: 600;
@@ -174,7 +171,6 @@ label {
   display: block;
 }
 
-/* ✅ Selects */
 select {
   width: 100%;
   padding: 12px 14px;
@@ -197,12 +193,10 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(99,102,241,.3);
 }
 
-/* ✅ Select dentro de form */
 form select {
   flex: 1 1 260px;
 }
 
-/* ✅ Checkbox y radio */
 input[type="checkbox"], input[type="radio"] {
   accent-color: var(--primary);
   transform: scale(1.2);
@@ -211,12 +205,11 @@ input[type="checkbox"], input[type="radio"] {
 }
 
 .filters .secondary.active-filter {
-  background-color: #007bff; /* azul ejemplo */
+  background-color: #007bff;
   color: white;
   font-weight: bold;
 }
 
-  /* Estilos del Modal */
 .modal {
   position: fixed;
   z-index: 1000;
