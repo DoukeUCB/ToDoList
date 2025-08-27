@@ -158,3 +158,16 @@ themeBtn.addEventListener('click', ()=> applyTheme(document.documentElement.clas
     showToast(e.message);
   }
 })();
+
+// Seleccionamos todos los botones de filtro
+const filterButtons = document.querySelectorAll(".filters .secondary");
+
+filterButtons.forEach(button => {
+  button.addEventListener("click", function () {
+    // Quitamos la clase activa de todos
+    filterButtons.forEach(btn => btn.classList.remove("active-filter"));
+
+    // Agregamos la clase activa al botón presionado
+    this.classList.add("active-filter");
+  });
+});

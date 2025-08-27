@@ -209,3 +209,9 @@ input[type="checkbox"], input[type="radio"] {
   cursor: pointer;
   margin-right: 6px;
 }
+
+.filters .secondary.active-filter {
+  background-color: #007bff; /* azul ejemplo */
+  color: white;
+  font-weight: bold;
+}
