@@ -14,6 +14,12 @@ export class Task {
   @Column({ default: false })
   completed!: boolean;
 
+  @Column({ type: 'datetime', nullable: true })
+  startDate?: Date | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  endDate?: Date | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 

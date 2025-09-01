@@ -1,0 +1,130 @@
+[33mcommit 6af8b53e01e1257e34f4e1ecb1a268e3ec70fb1b[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mfeature-add-date[m[33m)[m
+Merge: 0a59832 81841f0
+Author: Douglas Mendez UCB <88751274+DoukeUCB@users.noreply.github.com>
+Date:   Wed Aug 27 15:21:54 2025 -0400
+
+    Merge pull request #12 from DoukeUCB/fix/ui-colors
+    
+    Correccon de colores en la pagina para adaptar los colores a lodo light y dark
+
+[33mcommit 81841f01694ab6a11ad8b0a959a0ff98e28da719[m
+Author: jarPunk <jar_ax@hotmail.com>
+Date:   Wed Aug 27 14:41:23 2025 -0400
+
+    Correccon de colores en la pagina para adaptar los colores a lodo light y dark
+
+[33mcommit 0a598322be257e306194ccd7f1e66db2ab36d77c[m
+Author: DoukeUCB <douglas.mendez@jala.university>
+Date:   Wed Aug 27 14:01:47 2025 -0400
+
+    Delete comments
+
+[33mcommit 2a6f8acbf9735be173838508a07b2f66f3014e16[m
+Author: DoukeUCB <douglas.mendez@jala.university>
+Date:   Wed Aug 27 14:00:21 2025 -0400
+
+    FIX close branches
+
+[33mcommit f61ea07e9da3c84cd039cee111de7ff00a593f9a[m
+Merge: 44c76ab 3a6692d
+Author: Douglas Mendez UCB <88751274+DoukeUCB@users.noreply.github.com>
+Date:   Wed Aug 27 13:45:00 2025 -0400
+
+    Merge pull request #11 from DoukeUCB/Rama-Dylan
+    
+    Rama dylan
+
+[33mcommit 3a6692de01c5ad51fe943e885e8d5dff086177c8[m
+Merge: 7f0cf4d 44c76ab
+Author: Douglas Mendez UCB <88751274+DoukeUCB@users.noreply.github.com>
+Date:   Wed Aug 27 13:44:51 2025 -0400
+
+    Merge branch 'main' into Rama-Dylan
+
+[33mcommit 44c76ab7d978ba7d750137feb50b77db361c42fa[m
+Merge: 04b6caf 5468423
+Author: Douglas Mendez UCB <88751274+DoukeUCB@users.noreply.github.com>
+Date:   Wed Aug 27 13:32:50 2025 -0400
+
+    Merge pull request #10 from DoukeUCB/feature/confirm-delete-modal
+    
+    Agrego ventana de confirmación para eliminar
+
+[33mcommit 5468423bef73e9857a4790ce3ca81d0f5a9e96b4[m
+Merge: cc46783 04b6caf
+Author: DoukeUCB <douglas.mendez@jala.university>
+Date:   Wed Aug 27 13:32:27 2025 -0400
+
+    Merge branch 'main' into feature/confirm-delete-modal
+
+[33mcommit 04b6caf657a0620810c826195ef9c9fa3d79b3f4[m
+Merge: 141ec2d ea2fd88
+Author: Douglas Mendez UCB <88751274+DoukeUCB@users.noreply.github.com>
+Date:   Wed Aug 27 12:02:29 2025 -0400
+
+    Merge pull request #9 from DoukeUCB/feachure/Nicolette_Oficial
+    
+    se implemento el boton editar y eliminar corregidos Y FUNCIOANLES
+
+[33mcommit ea2fd885020f6e3160b7d5e4f22274ce3aa283df[m
+Author: Douglas Mendez UCB <88751274+DoukeUCB@users.noreply.github.com>
+Date:   Wed Aug 27 12:01:56 2025 -0400
+
+    Fix Styles.css
+
+[33mcommit 7f0cf4d4efe9ff90d5c2c7bdf454d9fc56cb6a8e[m
+Author: Dylan <dylan.calle@ucb.edu.bo>
+Date:   Wed Aug 27 11:51:47 2025 -0400
+
+    Cuando se selecciona una de los botones secundarios, este resaltara del resto para que el usuario sepa que selecciono
+
+[33mcommit 7a73df2de5cf6bc38fa1149d8b366065c666d05d[m
+Author: Dylan <dylan.calle@ucb.edu.bo>
+Date:   Wed Aug 27 11:37:06 2025 -0400
+
+    Se agrego un mensaje de advertencia cuando valla a limpiar todas las tareas completadas
+
+[33mcommit cc4678357da3c9bd95b81024ea67b6545892008c[m
+Author: jarPunk <jar_ax@hotmail.com>
+Date:   Mon Aug 25 17:26:44 2025 -0400
+
+    Agrego ventana de confirmación para eliminar
+
+[33mcommit e89e4ab87616d908b014d239f52953801cfa246d[m
+Author: Nicolette <nicolette.chalup@ucb.edu.bo>
+Date:   Mon Aug 25 17:00:48 2025 -0400
+
+    se implemento el boton editar y eliminar corregidos Y FUNCIOANLES
+
+[33mcommit 141ec2deb31e9ac5a564df2f8ea29c9c52371347[m
+Merge: 06b6496 28c9a50
+Author: Douglas Mendez UCB <88751274+DoukeUCB@users.noreply.github.com>
+Date:   Mon Aug 25 15:56:29 2025 -0400
+
+    Merge pull request #8 from DoukeUCB/HomePagewithTasks
+    
+    Fix delete button, fix filter for completed tasks, structure for styles.css
+
+[33mcommit 28c9a50f5428f92d5dcc2c0b4711adb7a6aa1aa9[m
+Author: Valeria Rivero <valeria.rivero@ucb.edu.bo>
+Date:   Mon Aug 25 15:32:46 2025 -0400
+
+    Mejora de visualiazcion y funcionamiento en la ui
+
+[33mcommit 06b64969871c2f854c22381ed823ee1439c7896c[m
+Author: DoukeUCB <douglas.mendez@jala.university>
+Date:   Wed Aug 20 14:42:21 2025 -0400
+
+    Add basic UI for home page
+
+[33mcommit c3be6dd45dc5b6f071a74281d0664cff2192bfca[m
+Author: DoukeUCB <douglas.mendez@jala.university>
+Date:   Wed Aug 20 14:38:22 2025 -0400
+
+    Add layers architecture, CRUD for tasks
+
+[33mcommit 38f039dd7373d7c923f01e28019a7dd46d98f984[m
+Author: Douglas Mendez UCB <88751274+DoukeUCB@users.noreply.github.com>
+Date:   Wed Aug 20 10:58:37 2025 -0400
+
+    Initial commit

@@ -8,7 +8,7 @@ dotenv.config();
 export const AppDataSource = new DataSource({
   type: 'sqlite',
   database: process.env.DB_PATH || 'data/database.sqlite',
-  synchronize: false,
+  synchronize: true,
   entities: [Task],
   logging: false
 });

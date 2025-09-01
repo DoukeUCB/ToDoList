@@ -12,6 +12,8 @@ const editModal = document.getElementById('edit-modal');
 const editForm = document.getElementById('edit-form');
 const editTitleInput = document.getElementById('edit-title');
 const editDescriptionInput = document.getElementById('edit-description');
+const editStartDateInput = document.getElementById('edit-start-date');
+const editEndDateInput = document.getElementById('edit-end-date');
 const confirmEditBtn = document.getElementById('confirm-edit-btn');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
 let taskToEditId = null;
@@ -26,12 +28,20 @@ function esc(str='') {
   return str.replace(/[&<>"]?/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]||c));
 }
 
+function formatDate(d) {
+  if (!d) return '';
+  const date = new Date(d);
+  return date.toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+}
+
 function taskItemHtml(task) {
   return `<li data-id="${task.id}" class="${task.completed ? 'completed' : ''} fade-in">
     <input type="checkbox" class="toggle" ${task.completed ? 'checked' : ''} />
     <div>
       <div class="title">${esc(task.title)}</div>
       ${task.description ? `<small>${esc(task.description)}</small>` : ''}
+      ${task.startDate ? `<div><small>Inicio: ${formatDate(task.startDate)}</small></div>` : ''}
+      ${task.endDate ? `<div><small>Fin: ${formatDate(task.endDate)}</small></div>` : ''}
     </div>
     <div class="actions">
       <button class="edit secondary" title="Editar">✏️</button>
@@ -68,11 +78,12 @@ async function fetchTasks() {
   if (!res.ok) throw new Error('Error cargando tareas');
   return res.json();
 }
-async function addTask(title, description) {
+
+async function addTask(title, description, startDate, endDate) {
   const res = await fetch('/api/tasks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, description })
+    body: JSON.stringify({ title, description, startDate, endDate })
   });
   if (!res.ok) {
     const data = await res.json().catch(()=>({}));
@@ -82,6 +93,7 @@ async function addTask(title, description) {
   allTasks.push(newTask);
   renderList();
 }
+
 async function toggleTask(id, completed) {
   await fetch(`/api/tasks/${id}`, {
     method: 'PUT',
@@ -92,13 +104,14 @@ async function toggleTask(id, completed) {
   if (task) task.completed = completed;
   renderList();
 }
+
 async function deleteTask(id) {
   await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
   allTasks = allTasks.filter(t=>t.id!=id);
   renderList();
 }
+
 async function clearCompleted() {
-  // Mostrar modal de confirmación en lugar del confirm nativo
   clearModal.style.display = 'flex';
 }
 
@@ -110,15 +123,22 @@ function renderList() {
   updateCounters();
 }
 
+// --- Formulario creación ---
 document.getElementById('task-form').addEventListener('submit', async e => {
   e.preventDefault();
   const titleEl = document.getElementById('title');
   const descEl = document.getElementById('description');
+  const startDateEl = document.getElementById('start-date');
+  const endDateEl = document.getElementById('end-date');
+
   const title = titleEl.value.trim();
   const description = descEl.value.trim();
+  const startDate = startDateEl.value ? new Date(startDateEl.value).toISOString() : null;
+  const endDate = endDateEl.value ? new Date(endDateEl.value).toISOString() : null;
+
   if (!title) return;
   try {
-    await addTask(title, description);
+    await addTask(title, description, startDate, endDate);
     e.target.reset();
     titleEl.focus();
   } catch(err){
@@ -126,12 +146,14 @@ document.getElementById('task-form').addEventListener('submit', async e => {
   }
 });
 
+// --- Eventos lista ---
 document.getElementById('tasks').addEventListener('change', e => {
   if (e.target.classList.contains('toggle')) {
     const li = e.target.closest('li');
     toggleTask(li.dataset.id, e.target.checked);
   }
 });
+
 document.getElementById('tasks').addEventListener('click', async e => {
   const target = e.target;
   const taskElement = target.closest('li');
@@ -140,27 +162,23 @@ document.getElementById('tasks').addEventListener('click', async e => {
   const taskId = parseInt(taskElement.dataset.id);
 
   if (target.matches('.delete')) {
-    // En lugar de eliminar, muestra el modal
     taskToDeleteId = taskId;
     confirmModal.style.display = 'flex';
-  } else if (target.matches('.toggle')) {
-    toggleTask(taskId, target.checked);
-  }
-
-    if (e.target.classList.contains('edit')) {
+  } else if (e.target.classList.contains('edit')) {
     const task = allTasks.find(t => t.id === taskId);
     if (!task) return;
 
-    // Mostrar modal de edición en lugar del prompt
     taskToEditId = taskId;
     editTitleInput.value = task.title;
     editDescriptionInput.value = task.description || '';
+    editStartDateInput.value = task.startDate ? new Date(task.startDate).toISOString().slice(0,16) : '';
+    editEndDateInput.value = task.endDate ? new Date(task.endDate).toISOString().slice(0,16) : '';
     editModal.style.display = 'flex';
     editTitleInput.focus();
   }
 });
 
-
+// --- Filtros ---
 document.querySelectorAll('.filters button[data-filter]').forEach(btn => {
   btn.addEventListener('click', () => {
     currentFilter = btn.dataset.filter;
@@ -196,7 +214,6 @@ themeBtn.addEventListener('click', ()=> applyTheme(document.documentElement.clas
 })();
 
 const filterButtons = document.querySelectorAll(".filters .secondary");
-
 filterButtons.forEach(button => {
   button.addEventListener("click", function () {
     filterButtons.forEach(btn => btn.classList.remove("active-filter"));
@@ -204,85 +221,93 @@ filterButtons.forEach(button => {
   });
 });
 
-// Event listeners para modal de eliminación
+// --- Confirmación eliminación ---
 confirmDeleteBtn.addEventListener('click', () => {
-    if (taskToDeleteId !== null) {
-        deleteTask(taskToDeleteId);
-        taskToDeleteId = null;
-    }
-    confirmModal.style.display = 'none';
+  if (taskToDeleteId !== null) {
+    deleteTask(taskToDeleteId);
+    taskToDeleteId = null;
+  }
+  confirmModal.style.display = 'none';
 });
 
 cancelDeleteBtn.addEventListener('click', () => {
-    taskToDeleteId = null;
-    confirmModal.style.display = 'none';
+  taskToDeleteId = null;
+  confirmModal.style.display = 'none';
 });
 
-// Event listeners para modal de edición
+// --- Guardar edición ---
 editForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (taskToEditId !== null) {
-        const newTitle = editTitleInput.value.trim();
-        const newDescription = editDescriptionInput.value.trim();
-        
-        if (!newTitle) return;
-        
-        try {
-            await fetch(`/api/tasks/${taskToEditId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: newTitle, description: newDescription })
-            });
+  e.preventDefault();
+  if (taskToEditId !== null) {
+    const newTitle = editTitleInput.value.trim();
+    const newDescription = editDescriptionInput.value.trim();
+    const newStartDate = editStartDateInput.value ? new Date(editStartDateInput.value).toISOString() : null;
+    const newEndDate = editEndDateInput.value ? new Date(editEndDateInput.value).toISOString() : null;
 
-            const task = allTasks.find(t => t.id === taskToEditId);
-            if (task) {
-                task.title = newTitle;
-                task.description = newDescription;
-            }
+    if (!newTitle) return;
+    try {
+      await fetch(`/api/tasks/${taskToEditId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: newTitle, 
+          description: newDescription,
+          startDate: newStartDate,
+          endDate: newEndDate
+        })
+      });
 
-            renderList();
-            taskToEditId = null;
-            editModal.style.display = 'none';
-        } catch (err) {
-            showToast('Error al actualizar la tarea');
-        }
+      const task = allTasks.find(t => t.id === taskToEditId);
+      if (task) {
+        task.title = newTitle;
+        task.description = newDescription;
+        task.startDate = newStartDate;
+        task.endDate = newEndDate;
+      }
+
+      renderList();
+      taskToEditId = null;
+      editModal.style.display = 'none';
+    } catch (err) {
+      showToast('Error al actualizar la tarea');
     }
+  }
 });
 
 cancelEditBtn.addEventListener('click', () => {
-    taskToEditId = null;
-    editModal.style.display = 'none';
+  taskToEditId = null;
+  editModal.style.display = 'none';
 });
 
-// Event listeners para modal de limpiar
+// --- Limpiar completadas ---
 confirmClearBtn.addEventListener('click', async () => {
-    try {
-        const completed = allTasks.filter(t => t.completed);
-        await Promise.all(completed.map(t => fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })));
-        allTasks = allTasks.filter(t => !t.completed);
-        renderList();
-        showToast('Tareas completadas eliminadas');
-    } catch (err) {
-        showToast('Error al eliminar tareas completadas');
-    }
-    clearModal.style.display = 'none';
+  try {
+    const completed = allTasks.filter(t => t.completed);
+    await Promise.all(completed.map(t => fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })));
+    allTasks = allTasks.filter(t => !t.completed);
+    renderList();
+    showToast('Tareas completadas eliminadas');
+  } catch (err) {
+    showToast('Error al eliminar tareas completadas');
+  }
+  clearModal.style.display = 'none';
 });
 
 cancelClearBtn.addEventListener('click', () => {
-    clearModal.style.display = 'none';
+  clearModal.style.display = 'none';
 });
 
-// Cerrar modales al hacer clic fuera de ellos
+// --- Cerrar modales ---
 window.addEventListener('click', (e) => {
-    if (e.target === confirmModal) {
-        taskToDeleteId = null;
-        confirmModal.style.display = 'none';
-    }
-    if (e.target === editModal) {
-        taskToEditId = null;
-        editModal.style.display = 'none';
-    }
-    if (e.target === clearModal) {
-        clearModal.style.display = 'none';
-    }
+  if (e.target === confirmModal) {
+    taskToDeleteId = null;
+    confirmModal.style.display = 'none';
+  }
+  if (e.target === editModal) {
+    taskToEditId = null;
+    editModal.style.display = 'none';
+  }
+  if (e.target === clearModal) {
+    clearModal.style.display = 'none';
+  }
 });

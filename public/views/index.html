@@ -14,6 +14,13 @@
       <form id="task-form" autocomplete="off">
         <input type="text" id="title" placeholder="Título *" required maxlength="255" />
         <textarea id="description" placeholder="Descripción (opcional)"></textarea>
+
+        <label for="start-date">Fecha de inicio</label>
+        <input type="datetime-local" id="start-date" />
+
+        <label for="end-date">Fecha final</label>
+        <input type="datetime-local" id="end-date" />
+
         <button type="submit">Añadir</button>
       </form>
     </div>
@@ -50,6 +57,13 @@
       <form id="edit-form">
         <input type="text" id="edit-title" placeholder="Título *" required maxlength="255" />
         <textarea id="edit-description" placeholder="Descripción (opcional)"></textarea>
+
+        <label for="edit-start-date">Fecha de inicio</label>
+        <input type="datetime-local" id="edit-start-date" />
+
+        <label for="edit-end-date">Fecha final</label>
+        <input type="datetime-local" id="edit-end-date" />
+
         <div class="modal-actions">
           <button type="submit" id="confirm-edit-btn">Guardar</button>
           <button type="button" id="cancel-edit-btn" class="secondary">Cancelar</button>
