@@ -20,6 +20,12 @@
       <form id="task-form" autocomplete="off">
         <input type="text" id="title" placeholder="Título *" required maxlength="255" />
         <textarea id="description" placeholder="Descripción (opcional)"></textarea>
+        <select name="categoria">
+          <option value="">Por defecto</option>
+          <option value="Trabajo">Trabajo</option>
+          <option value="Casa">Casa</option>
+          <option value="Personal">Personal</option>
+        </select>
         <button type="submit">Añadir</button>
       </form>
     </div>
