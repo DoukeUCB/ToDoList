@@ -27,4 +27,8 @@ export class Task {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt!: Date;
+
+  @Column({ type: 'varchar', length: 50, default: 'Por defecto' })
+  categoria!: string;
+
 }

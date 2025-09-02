@@ -20,8 +20,8 @@ export class TaskService {
     return this.repository.findById(id);
   }
 
-  create(data: { title: string; description?: string | null; userId?: number }) {
-    return this.repository.create({ ...data, completed: false });
+  create(data: { title: string; description?: string | null; userId?: number; categoria?: string }) {
+    return this.repository.create({ ...data, completed: false, categoria: data.categoria || 'Por defecto', });
   }
 
   async update(id: number, updates: Partial<Task>) {

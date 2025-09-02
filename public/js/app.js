@@ -86,6 +86,7 @@ function taskItemHtml(task) {
     <div>
       <div class="title">${esc(task.title)}</div>
       ${task.description ? `<small>${esc(task.description)}</small>` : ''}
+      <small class="categoria">📂 ${esc(task.categoria || "Por defecto")}</small> <!-- 👈 mostramos -->
     </div>
     <div class="actions">
       <button class="edit secondary" title="Editar">✏️</button>
@@ -93,6 +94,7 @@ function taskItemHtml(task) {
     </div>
   </li>`;
 }
+
 
 function applyFilter(tasks) {
   if (currentFilter === 'active') return tasks.filter(t => !t.completed);
@@ -124,12 +126,12 @@ async function fetchTasks() {
   if (!res.ok) throw new Error('Error cargando tareas');
   return res.json();
 }
-async function addTask(title, description) {
+async function addTask(title, description, categoria) {
   const res = await fetch('/api/tasks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ title, description })
+    body: JSON.stringify({ title, description, categoria }) // 👈 ahora mandamos categoria
   });
   if (!res.ok) {
     const data = await res.json().catch(()=>({}));
@@ -174,11 +176,15 @@ document.getElementById('task-form').addEventListener('submit', async e => {
   e.preventDefault();
   const titleEl = document.getElementById('title');
   const descEl = document.getElementById('description');
+  const catEl = e.target.querySelector('select[name="categoria"]')
+
   const title = titleEl.value.trim();
   const description = descEl.value.trim();
+  const categoria = catEl.value.trim();
+
   if (!title) return;
   try {
-    await addTask(title, description);
+    await addTask(title, description, categoria);
     e.target.reset();
     titleEl.focus();
   } catch(err){

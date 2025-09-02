@@ -33,7 +33,8 @@ export class TaskRepository {
   }
 
   create(taskData: Partial<Task>) {
-    const task = this.repo.create(taskData);
+    const task = this.repo.create({...taskData, categoria: taskData.categoria || 'Por defecto',});
+    
     return this.repo.save(task);
   }
 
