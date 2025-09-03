@@ -8,7 +8,13 @@
 </head>
 <body>
   <div class="container fade-in" id="app-root">
-    <button class="theme-toggle secondary" id="theme-btn" title="Cambiar tema">🌙</button>
+    <div class="header-bar">
+      <button class="theme-toggle secondary" id="theme-btn" title="Cambiar tema">🌙</button>
+      <div class="user-info" id="user-info" style="display: none;">
+        <span id="user-name"></span>
+        <button class="secondary logout-btn" id="logout-btn" title="Cerrar sesión">Salir</button>
+      </div>
+    </div>
     <h1>ToDo <span class="badge">TS</span></h1>
     <div class="top-bar">
       <form id="task-form" autocomplete="off">
@@ -20,7 +26,12 @@
           <option value="universidad">Universidad</option>
           <option value="trabajo">Trabajo</option>
         </select>
-
+      
+        <!-- Campos de fechas -->
+        <label for="start-date">Fecha inicio:</label>
+        <input type="datetime-local" id="start-date" />
+        <label for="end-date">Fecha fin:</label>
+        <input type="datetime-local" id="end-date" />
         <button type="submit">Añadir</button>
       </form>
     </div>
@@ -32,6 +43,8 @@
         <button class="secondary" data-filter="all">Todas las tareas</button>
         <button class="secondary" data-filter="active">Activas</button>
         <button class="secondary" data-filter="completed">Completadas</button>
+        <!-- Filtro para tareas caducadas -->
+        <button class="secondary" data-filter="expired">Caducadas</button>
         <button class="secondary" id="clear-completed" title="Eliminar completadas">🗑 Limpiar</button>
       </div>
     </div>
@@ -57,6 +70,11 @@
       <form id="edit-form">
         <input type="text" id="edit-title" placeholder="Título *" required maxlength="255" />
         <textarea id="edit-description" placeholder="Descripción (opcional)"></textarea>
+        <!-- Fechas Editables -->
+        <label for="edit-start-date">Fecha inicio:</label>
+        <input type="datetime-local" id="edit-start-date" />
+        <label for="edit-end-date">Fecha fin:</label>
+        <input type="datetime-local" id="edit-end-date" />
         <div class="modal-actions">
           <button type="submit" id="confirm-edit-btn">Guardar</button>
           <button type="button" id="cancel-edit-btn" class="secondary">Cancelar</button>

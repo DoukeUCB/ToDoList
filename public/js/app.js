@@ -1,23 +1,79 @@
+let currentUser = null;
+
+async function checkAuth() {
+  try {
+    const response = await fetch('/api/users/me', {
+      credentials: 'include'
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      currentUser = data.user;
+      showUserInfo();
+      return true;
+    } else {
+      window.location.href = '/views/login.html';
+      return false;
+    }
+  } catch (error) {
+    console.error('Error verificando autenticación:', error);
+    window.location.href = '/views/login.html';
+    return false;
+  }
+}
+
+function showUserInfo() {
+  const userInfo = document.getElementById('user-info');
+  const userName = document.getElementById('user-name');
+  
+  if (currentUser && userInfo && userName) {
+    userName.textContent = `Hola, ${currentUser.name}`;
+    userInfo.style.display = 'flex';
+  }
+}
+
+function handleLogout() {
+  const logoutBtn = document.getElementById('logout-btn');
+  
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        const response = await fetch('/api/users/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          window.location.href = '/views/login.html';
+        } else {
+          console.error('Error al cerrar sesión');
+        }
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+      }
+    });
+  }
+}
+
 let allTasks = [];
 let currentFilter = localStorage.getItem('filter') || 'all'; // estado: all, active, completed
 let currentCategoryFilter = localStorage.getItem('categoryFilter') || 'all'; // categoría
 
-// Modal de eliminación
 const confirmModal = document.getElementById('confirm-modal');
 const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
 const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
 let taskToDeleteId = null;
 
-// Modal de edición
 const editModal = document.getElementById('edit-modal');
 const editForm = document.getElementById('edit-form');
 const editTitleInput = document.getElementById('edit-title');
 const editDescriptionInput = document.getElementById('edit-description');
+const editStartDateInput = document.getElementById('edit-start-date');
+const editEndDateInput = document.getElementById('edit-end-date');
 const confirmEditBtn = document.getElementById('confirm-edit-btn');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
 let taskToEditId = null;
 
-// Modal de limpiar
 const clearModal = document.getElementById('clear-modal');
 const confirmClearBtn = document.getElementById('confirm-clear-btn');
 const cancelClearBtn = document.getElementById('cancel-clear-btn');
@@ -28,12 +84,17 @@ function esc(str='') {
 }
 
 function taskItemHtml(task) {
-  return `<li data-id="${task.id}" class="${task.completed ? 'completed' : ''} fade-in">
+  const now = new Date();
+  const isExpired = !task.completed && task.endDate && new Date(task.endDate) < now;
+  return `<li data-id="${task.id}" class="${task.completed ? 'completed' : isExpired ? 'expired' : ''} fade-in">
     <input type="checkbox" class="toggle" ${task.completed ? 'checked' : ''} />
     <div>
       <div class="title">${esc(task.title)}</div>
       ${task.description ? `<small>${esc(task.description)}</small>` : ''}
       <small style="display:block; font-weight:bold; color:var(--primary)">Categoría: ${esc(task.category)}</small>
+      ${task.startDate ? `<small>Inicio: ${new Date(task.startDate).toLocaleString()}</small>` : ''}
+      ${task.endDate ? `<small>Fin: ${new Date(task.endDate).toLocaleString()}</small>` : ''}
+      ${isExpired ? `<small class="expired-label">⚠ Caducada</small>` : ''}
     </div>
     <div class="actions">
       <button class="edit secondary" title="Editar">✏️</button>
@@ -44,19 +105,23 @@ function taskItemHtml(task) {
 
 function applyFilter(tasks) {
   let filtered = tasks;
-
+  
   if (currentFilter === 'active') {
     filtered = tasks.filter(t => !t.completed);
   } else if (currentFilter === 'completed') {
     filtered = tasks.filter(t => t.completed);
   }
-
   // Filtrar por categoría (si no es "all")
   if (currentCategoryFilter && currentCategoryFilter !== 'all') {
     filtered = filtered.filter(t => t.category === currentCategoryFilter);
   }
-
   return filtered;
+
+  const now = new Date();
+  if (currentFilter === 'active') return tasks.filter(t => !t.completed && (!t.endDate || new Date(t.endDate) >= now));
+  if (currentFilter === 'completed') return tasks.filter(t => t.completed);
+  if (currentFilter === 'expired') return tasks.filter(t => !t.completed && t.endDate && new Date(t.endDate) < now);
+  return tasks;
 }
 
 
@@ -65,7 +130,8 @@ function applyFilter(tasks) {
 function updateCounters() {
   const total = allTasks.length;
   const completed = allTasks.filter(t => t.completed).length;
-  const pending = total - completed;
+  const expired = allTasks.filter(t => !t.completed && t.endDate && new Date(t.endDate) < new Date()).length;
+  const pending = total - completed - expired;
   document.getElementById('count-total').textContent = total;
   document.getElementById('count-completed').textContent = completed;
   document.getElementById('count-pending').textContent = pending;
@@ -104,16 +170,19 @@ categoryFiltersContainer.querySelectorAll('button[data-category]').forEach(btn =
 
     // --- API ---
 async function fetchTasks() {
-  const res = await fetch('/api/tasks');
+  const res = await fetch('/api/tasks', {
+    credentials: 'include'
+  });
   if (!res.ok) throw new Error('Error cargando tareas');
   return res.json();
 }
-// --- API: crear tarea (corregida para enviar category) ---
-async function addTask(title, description, category) {
+
+async function addTask(title, description, startDate, endDate) {
   const res = await fetch('/api/tasks', {
-    method: 'POST',
+    method: 'POST'
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, description, category }) // <-- enviamos category
+    credentials: 'include',
+    body: JSON.stringify({ title, description, startDate, endDate, category })
   });
 
   if (!res.ok) {
@@ -130,6 +199,7 @@ async function toggleTask(id, completed) {
   await fetch(`/api/tasks/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ completed })
   });
   const task = allTasks.find(t=>t.id==id);
@@ -137,12 +207,14 @@ async function toggleTask(id, completed) {
   renderList();
 }
 async function deleteTask(id) {
-  await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+  await fetch(`/api/tasks/${id}`, { 
+    method: 'DELETE',
+    credentials: 'include'
+  });
   allTasks = allTasks.filter(t=>t.id!=id);
   renderList();
 }
 async function clearCompleted() {
-  // Mostrar modal de confirmación en lugar del confirm nativo
   clearModal.style.display = 'flex';
 }
 
@@ -154,6 +226,19 @@ function renderList() {
   updateCounters();
 }
 
+// --- Restricción: no permitir fechas en el pasado ---
+function setDateMinToday() {
+  const now = new Date();
+  now.setSeconds(0, 0); 
+  const localISO = now.toLocaleString('sv-SE').replace(' ', 'T'); 
+
+  document.getElementById('start-date').min = localISO;
+  document.getElementById('end-date').min = localISO;
+  editStartDateInput.min = localISO;
+  editEndDateInput.min = localISO;
+}
+
+// --- Listeners ---
 document.getElementById('task-form').addEventListener('submit', async e => {
   e.preventDefault();
   const titleEl = document.getElementById('title');
@@ -169,8 +254,18 @@ document.getElementById('task-form').addEventListener('submit', async e => {
   }
 
   try {
-    await addTask(title, description, category); // <-- llamamos a addTask con category
+    await addTask(title, description, category);
+  const startEl = document.getElementById('start-date');
+  const endEl = document.getElementById('end-date');
+  const title = titleEl.value.trim();
+  const description = descEl.value.trim();
+  const startDate = startEl.value ? new Date(startEl.value).toISOString() : null;
+  const endDate = endEl.value ? new Date(endEl.value).toISOString() : null;
+  if (!title) return;
+  try {
+    await addTask(title, description, startDate, endDate);
     e.target.reset();
+    setDateMinToday();
     titleEl.focus();
   } catch (err) {
     showToast(err.message || 'Error al crear la tarea');
@@ -192,26 +287,24 @@ document.getElementById('tasks').addEventListener('click', async e => {
   const taskId = parseInt(taskElement.dataset.id);
 
   if (target.matches('.delete')) {
-    // En lugar de eliminar, muestra el modal
     taskToDeleteId = taskId;
     confirmModal.style.display = 'flex';
   } else if (target.matches('.toggle')) {
     toggleTask(taskId, target.checked);
   }
 
-    if (e.target.classList.contains('edit')) {
+  if (e.target.classList.contains('edit')) {
     const task = allTasks.find(t => t.id === taskId);
     if (!task) return;
-
-    // Mostrar modal de edición en lugar del prompt
     taskToEditId = taskId;
     editTitleInput.value = task.title;
     editDescriptionInput.value = task.description || '';
+    editStartDateInput.value = task.startDate ? new Date(task.startDate).toISOString().slice(0,16) : '';
+    editEndDateInput.value = task.endDate ? new Date(task.endDate).toISOString().slice(0,16) : '';
     editModal.style.display = 'flex';
     editTitleInput.focus();
   }
 });
-
 
 document.querySelectorAll('.filters button[data-filter]').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -245,17 +338,27 @@ function setActiveFilters() {
   categoryFiltersContainer.querySelectorAll('button[data-category]').forEach(b => b.classList.remove('active-filter'));
   categoryFiltersContainer.querySelector(`button[data-category="${currentCategoryFilter}"]`)?.classList.add('active-filter');
 }
+const filterButtons = document.querySelectorAll(".filters .secondary");
+
+filterButtons.forEach(button => {
+  button.addEventListener("click", function () {
+    filterButtons.forEach(btn => btn.classList.remove("active-filter"));
+    this.classList.add("active-filter");
+  });
+});
+
+// Event listeners para modal de eliminación
 // --- Inicio ---
 (async function init(){
   try {
     allTasks = await fetchTasks();
     setActiveFilters();
     renderList();
+    setDateMinToday();
   } catch(e){
     showToast(e.message);
   }
 })();
-
 
 // Event listeners para modal de eliminación
 confirmDeleteBtn.addEventListener('click', () => {
@@ -271,26 +374,31 @@ cancelDeleteBtn.addEventListener('click', () => {
     confirmModal.style.display = 'none';
 });
 
-// Event listeners para modal de edición
+// --- Event listeners para modal de edición ---
 editForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (taskToEditId !== null) {
         const newTitle = editTitleInput.value.trim();
         const newDescription = editDescriptionInput.value.trim();
-        
+        const newStartDate = editStartDateInput.value ? new Date(editStartDateInput.value).toISOString() : null;
+        const newEndDate = editEndDateInput.value ? new Date(editEndDateInput.value).toISOString() : null;
+
         if (!newTitle) return;
-        
+
         try {
             await fetch(`/api/tasks/${taskToEditId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: newTitle, description: newDescription })
+                credentials: 'include',
+                body: JSON.stringify({ title: newTitle, description: newDescription, startDate: newStartDate, endDate: newEndDate })
             });
 
             const task = allTasks.find(t => t.id === taskToEditId);
             if (task) {
                 task.title = newTitle;
                 task.description = newDescription;
+                task.startDate = newStartDate;
+                task.endDate = newEndDate;
             }
 
             renderList();
@@ -307,11 +415,14 @@ cancelEditBtn.addEventListener('click', () => {
     editModal.style.display = 'none';
 });
 
-// Event listeners para modal de limpiar
+// --- Event listeners para modal de limpiar ---
 confirmClearBtn.addEventListener('click', async () => {
     try {
         const completed = allTasks.filter(t => t.completed);
-        await Promise.all(completed.map(t => fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })));
+        await Promise.all(completed.map(t => fetch(`/api/tasks/${t.id}`, { 
+            method: 'DELETE',
+            credentials: 'include'
+        })));
         allTasks = allTasks.filter(t => !t.completed);
         renderList();
         showToast('Tareas completadas eliminadas');
@@ -325,7 +436,7 @@ cancelClearBtn.addEventListener('click', () => {
     clearModal.style.display = 'none';
 });
 
-// Cerrar modales al hacer clic fuera de ellos
+// --- Cerrar modales al hacer clic fuera de ellos ---
 window.addEventListener('click', (e) => {
     if (e.target === confirmModal) {
         taskToDeleteId = null;
@@ -339,3 +450,25 @@ window.addEventListener('click', (e) => {
         clearModal.style.display = 'none';
     }
 });
+
+async function initApp() {
+    // Verificar autenticación primero
+    const isAuthenticated = await checkAuth();
+    if (!isAuthenticated) return;
+    
+    // Configurar evento de logout
+    handleLogout();
+    
+    // Cargar tareas y aplicar filtros
+    try {
+        allTasks = await fetchTasks();
+        renderList();
+        updateCounters();
+        setFilterActive(currentFilter);
+    } catch (err) {
+        console.error('Error cargando tareas:', err);
+        showToast('Error cargando tareas');
+    }
+}
+
+initApp();
