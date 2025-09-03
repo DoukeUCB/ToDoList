@@ -16,7 +16,7 @@ export class Task {
   @Column({ length: 50 })
   category!: string;
 
-  @ManyToOne(() => Category, category => category.tasks, { nullable: true })
+  @ManyToOne(() => Category, (category: Category) => category.tasks, { nullable: true })
   @JoinColumn({ name: 'category_id' })
   categoryEntity?: Category | null;
 
@@ -26,7 +26,7 @@ export class Task {
   @Column({ default: false })
   completed!: boolean;
 
-  @ManyToOne(() => User, user => user.tasks, { nullable: true })
+  @ManyToOne(() => User, (user: User) => user.tasks, { nullable: true })
   @JoinColumn({ name: 'user_id' })
   user?: User;
 

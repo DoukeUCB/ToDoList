@@ -16,14 +16,14 @@ export class Category {
   @Column({ default: false })
   isDefault!: boolean; // true para las categorías por defecto del sistema
 
-  @ManyToOne(() => User, user => user.categories, { nullable: true })
+  @ManyToOne(() => User, (user: User) => user.categories, { nullable: true })
   @JoinColumn({ name: 'user_id' })
   user?: User | null;
 
   @Column({ name: 'user_id', nullable: true })
   userId?: number | null;
 
-  @OneToMany(() => Task, task => task.category)
+  @OneToMany(() => Task, (task: Task) => task.categoryEntity)
   tasks?: Task[];
 
   @CreateDateColumn({ name: 'created_at' })

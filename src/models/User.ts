@@ -19,10 +19,10 @@ export class User {
   @Column({ length: 255 })
   password!: string;
 
-  @OneToMany(() => Task, task => task.user)
+  @OneToMany(() => Task, (task: Task) => task.user)
   tasks?: Task[];
 
-  @OneToMany(() => Category, category => category.user)
+  @OneToMany(() => Category, (category: Category) => category.user)
   categories?: Category[];
 
   @CreateDateColumn({ name: 'created_at' })

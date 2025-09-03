@@ -51,7 +51,7 @@ const PORT = process.env.PORT || 3000;
 
 AppDataSource.initialize().then(() => {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-}).catch(err => {
+}).catch((err: any) => {
   console.error('Data Source init error', err);
   process.exit(1);
 });
