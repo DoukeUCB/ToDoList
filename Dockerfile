@@ -1,5 +1,5 @@
 # Dockerfile para ToDoList App
-FROM node:20-alpine
+FROM node:22-alpine
 
 # Crear directorio de la aplicación
 WORKDIR /usr/src/app
