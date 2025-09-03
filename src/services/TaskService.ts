@@ -19,11 +19,10 @@ export class TaskService {
   get(id: number) {
     return this.repository.findById(id);
   }
-
-  create(data: { title: string; description?: string | null; startDate?: Date | null; endDate?: Date | null }) {
+  create(data: { title: string; description?: string | null;
+     startDate?: Date | null; endDate?: Date | null; userId?: number }) {
     return this.repository.create({
-      ...data,
-      completed: false,
+      ...data, completed: false,
       startDate: data.startDate ?? null,
       endDate: data.endDate ?? null,
     });
