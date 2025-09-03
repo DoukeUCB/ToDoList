@@ -14,7 +14,7 @@
       <form id="task-form" autocomplete="off">
         <input type="text" id="title" placeholder="Título *" required maxlength="255" />
         <textarea id="description" placeholder="Descripción (opcional)"></textarea>
-        <!-- ✅ Nuevos campos de fechas -->
+        <!-- Campos de fechas -->
         <label for="start-date">Fecha inicio:</label>
         <input type="datetime-local" id="start-date" />
         <label for="end-date">Fecha fin:</label>
@@ -30,7 +30,7 @@
         <button class="secondary" data-filter="all">Todas</button>
         <button class="secondary" data-filter="active">Activas</button>
         <button class="secondary" data-filter="completed">Completadas</button>
-        <!-- ✅ Nuevo filtro -->
+        <!-- Filtro para tareas caducadas -->
         <button class="secondary" data-filter="expired">Caducadas</button>
         <button class="secondary" id="clear-completed" title="Eliminar completadas">🗑 Limpiar</button>
       </div>
@@ -57,7 +57,7 @@
       <form id="edit-form">
         <input type="text" id="edit-title" placeholder="Título *" required maxlength="255" />
         <textarea id="edit-description" placeholder="Descripción (opcional)"></textarea>
-        <!-- ✅ Fechas editables -->
+        <!-- Fechas Editables -->
         <label for="edit-start-date">Fecha inicio:</label>
         <input type="datetime-local" id="edit-start-date" />
         <label for="edit-end-date">Fecha fin:</label>
