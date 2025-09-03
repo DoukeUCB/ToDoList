@@ -80,7 +80,8 @@ const confirmClearBtn = document.getElementById('confirm-clear-btn');
 const cancelClearBtn = document.getElementById('cancel-clear-btn');
 
 // --- Helpers ---
-function esc(str='') {
+function esc(str) {
+  if (str === null || str === undefined) str = '';
   return str.replace(/[&<>"]?/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]||c));
 }
 

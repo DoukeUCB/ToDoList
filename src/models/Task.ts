@@ -13,7 +13,7 @@ export class Task {
   @Column({ type: 'text', nullable: true })
   description?: string | null;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ length: 50 })
   category!: string;
 
   @ManyToOne(() => Category, category => category.tasks, { nullable: true })

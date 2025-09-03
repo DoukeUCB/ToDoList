@@ -9,7 +9,6 @@ export function errorHandler(err: any, _req: Request, res: Response, _next: Next
   if (res.headersSent) return;
   const status = err.status || 500;
   res.status(status).json({
-    message: err.message || 'Error interno',
-    ...(process.env.NODE_ENV !== 'production' ? { stack: err.stack } : {})
+    message: err.message || 'Error interno'
   });
 }
