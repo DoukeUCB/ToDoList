@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  todolist-app:
+    build: .
+    container_name: todolist-demo
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SESSION_SECRET=douke017
+      - DB_PATH=data/database.sqlite
+    volumes:
+      - todolist_data:/usr/src/app/data
+    restart: unless-stopped
+
+volumes:
+  todolist_data:
