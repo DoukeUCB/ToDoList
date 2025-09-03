@@ -1,4 +1,6 @@
 let currentUser = null;
+let allTasks = [];
+let allCategories = [];
 
 async function checkAuth() {
   try {
@@ -55,7 +57,6 @@ function handleLogout() {
   }
 }
 
-let allTasks = [];
 let currentFilter = localStorage.getItem('filter') || 'all'; // estado: all, active, completed
 let currentCategoryFilter = localStorage.getItem('categoryFilter') || 'all'; // categoría
 
@@ -143,30 +144,6 @@ function showToast(msg) {
   t.style.display = "block";
   setTimeout(()=> t.style.display = "none", 3000);
 }
-const categoryFiltersContainer = document.createElement('div');
-  categoryFiltersContainer.classList.add('filters');
-  categoryFiltersContainer.style.marginBottom = '16px';
-  categoryFiltersContainer.innerHTML = `
-    <strong>Filtrar por categoría: </strong>
-    <button class="secondary" data-category="all">Todas</button>
-    <button class="secondary" data-category="casa">Casa</button>
-    <button class="secondary" data-category="universidad">Universidad</button>
-    <button class="secondary" data-category="trabajo">Trabajo</button>`;
-// --- Insertar filtros justo antes de la lista de tareas ---
-document.getElementById('tasks').parentNode.insertBefore(categoryFiltersContainer, document.getElementById('tasks'));
-
-categoryFiltersContainer.querySelectorAll('button[data-category]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    currentCategoryFilter = btn.dataset.category; // cambia filtro actual
-    localStorage.setItem('categoryFilter', currentCategoryFilter); // GUARDAR categoría
-    categoryFiltersContainer.querySelectorAll('button').forEach(b => b.classList.remove('active-filter'));
-    btn.classList.add('active-filter'); // resalta botón activo
-    renderList(); // vuelve a renderizar la lista filtrada
-  });
-});
-
-
-
 
     // --- API ---
 async function fetchTasks() {
@@ -330,9 +307,12 @@ function setActiveFilters() {
   document.querySelectorAll('.filters button[data-filter]').forEach(b => b.classList.remove('active'));
   document.querySelector(`.filters button[data-filter="${currentFilter}"]`)?.classList.add('active');
 
-  // Categoría
-  categoryFiltersContainer.querySelectorAll('button[data-category]').forEach(b => b.classList.remove('active-filter'));
-  categoryFiltersContainer.querySelector(`button[data-category="${currentCategoryFilter}"]`)?.classList.add('active-filter');
+  // Categoría - buscar en el contenedor dinámico
+  const categoryFilters = document.getElementById('category-filters');
+  if (categoryFilters) {
+    categoryFilters.querySelectorAll('button[data-category]').forEach(b => b.classList.remove('active-filter'));
+    categoryFilters.querySelector(`button[data-category="${currentCategoryFilter}"]`)?.classList.add('active-filter');
+  }
 }
 const filterButtons = document.querySelectorAll(".filters .secondary");
 
@@ -428,6 +408,240 @@ confirmClearBtn.addEventListener('click', async () => {
     clearModal.style.display = 'none';
 });
 
+// --- Gestion de categorías ---
+async function fetchCategories() {
+  const res = await fetch('/api/categories', {
+    credentials: 'include'
+  });
+  if (!res.ok) throw new Error('Error cargando categorías');
+  return res.json();
+}
+
+async function createCategory(name, color) {
+  const res = await fetch('/api/categories', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ name, color })
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || 'Error creando categoría');
+  }
+
+  return res.json();
+}
+
+async function deleteCategory(id) {
+  const res = await fetch(`/api/categories/${id}`, {
+    method: 'DELETE',
+    credentials: 'include'
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || 'Error eliminando categoría');
+  }
+}
+
+function loadCategoriesIntoSelect() {
+  const categorySelect = document.getElementById('category');
+  categorySelect.innerHTML = '<option value="">-- Selecciona categoría --</option>';
+  
+  allCategories.forEach(category => {
+    const option = document.createElement('option');
+    option.value = category.name;
+    option.textContent = category.name;
+    option.style.color = category.color;
+    categorySelect.appendChild(option);
+  });
+}
+
+function updateCategoryFilters() {
+  const categoryFiltersContainer = document.querySelector('.filters');
+  
+  // Encontrar el contenedor de filtros de categoría
+  let categoryFilters = document.getElementById('category-filters');
+  if (!categoryFilters) {
+    categoryFilters = document.createElement('div');
+    categoryFilters.id = 'category-filters';
+    categoryFilters.style.marginTop = '10px';
+    categoryFiltersContainer.appendChild(categoryFilters);
+  }
+  
+  categoryFilters.innerHTML = `
+    <strong>Filtrar por categoría: </strong>
+    <button class="secondary" data-category="all">Todas</button>
+  `;
+  
+  allCategories.forEach(category => {
+    const btn = document.createElement('button');
+    btn.classList.add('secondary');
+    btn.dataset.category = category.name;
+    btn.textContent = category.name;
+    btn.style.borderColor = category.color;
+    categoryFilters.appendChild(btn);
+  });
+  
+  // Agregar event listeners
+  categoryFilters.querySelectorAll('button[data-category]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentCategoryFilter = btn.dataset.category;
+      localStorage.setItem('categoryFilter', currentCategoryFilter);
+      categoryFilters.querySelectorAll('button').forEach(b => b.classList.remove('active-filter'));
+      btn.classList.add('active-filter');
+      renderList();
+    });
+  });
+  
+  // Establecer filtro activo
+  const activeBtn = categoryFilters.querySelector(`button[data-category="${currentCategoryFilter}"]`);
+  if (activeBtn) {
+    activeBtn.classList.add('active-filter');
+  }
+}
+
+function renderCategoriesList() {
+  const categoriesList = document.getElementById('categories-list');
+  if (!categoriesList) return;
+  
+  categoriesList.innerHTML = '';
+  
+  // Separar categorías por defecto y personalizadas
+  const defaultCategories = allCategories.filter(cat => cat.isDefault);
+  const userCategories = allCategories.filter(cat => !cat.isDefault);
+  
+  // Mostrar categorías por defecto
+  if (defaultCategories.length > 0) {
+    const defaultSection = document.createElement('div');
+    defaultSection.innerHTML = '<h5 style="margin-bottom: 10px; color: var(--text-secondary);">Categorías por defecto</h5>';
+    defaultCategories.forEach(category => {
+      const item = createCategoryListItem(category, false);
+      defaultSection.appendChild(item);
+    });
+    categoriesList.appendChild(defaultSection);
+  }
+  
+  // Mostrar categorías del usuario
+  if (userCategories.length > 0) {
+    const userSection = document.createElement('div');
+    userSection.innerHTML = '<h5 style="margin-bottom: 10px; color: var(--text-secondary); margin-top: 20px;">Mis categorías personalizadas</h5>';
+    userCategories.forEach(category => {
+      const item = createCategoryListItem(category, true);
+      userSection.appendChild(item);
+    });
+    categoriesList.appendChild(userSection);
+  } else {
+    const emptyMsg = document.createElement('p');
+    emptyMsg.textContent = 'Aún no has creado categorías personalizadas.';
+    emptyMsg.style.color = 'var(--text-secondary)';
+    emptyMsg.style.fontStyle = 'italic';
+    emptyMsg.style.marginTop = '20px';
+    categoriesList.appendChild(emptyMsg);
+  }
+}
+
+function createCategoryListItem(category, canDelete) {
+  const item = document.createElement('div');
+  item.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px;';
+  
+  const info = document.createElement('div');
+  info.style.cssText = 'display: flex; align-items: center; gap: 10px;';
+  
+  const colorDot = document.createElement('div');
+  colorDot.style.cssText = `width: 20px; height: 20px; border-radius: 50%; background-color: ${category.color}; border: 2px solid var(--border);`;
+  
+  const name = document.createElement('span');
+  name.textContent = category.name;
+  name.style.fontWeight = 'bold';
+  
+  info.appendChild(colorDot);
+  info.appendChild(name);
+  
+  const actions = document.createElement('div');
+  if (canDelete) {
+    const deleteBtn = document.createElement('button');
+    deleteBtn.classList.add('danger', 'small');
+    deleteBtn.textContent = 'Eliminar';
+    deleteBtn.onclick = () => handleDeleteCategory(category.id);
+    actions.appendChild(deleteBtn);
+  } else {
+    const label = document.createElement('span');
+    label.textContent = 'Por defecto';
+    label.style.cssText = 'font-size: 12px; color: var(--text-secondary); font-style: italic;';
+    actions.appendChild(label);
+  }
+  
+  item.appendChild(info);
+  item.appendChild(actions);
+  
+  return item;
+}
+
+async function handleDeleteCategory(categoryId) {
+  if (!confirm('¿Estás seguro de que quieres eliminar esta categoría? Las tareas asociadas mantendrán el nombre de la categoría.')) {
+    return;
+  }
+  
+  try {
+    await deleteCategory(categoryId);
+    allCategories = allCategories.filter(cat => cat.id !== categoryId);
+    renderCategoriesList();
+    loadCategoriesIntoSelect();
+    updateCategoryFilters();
+    showToast('Categoría eliminada exitosamente');
+  } catch (err) {
+    showToast(err.message || 'Error al eliminar la categoría');
+  }
+}
+
+// Event listeners para modal de categorías
+document.getElementById('manage-categories-btn').addEventListener('click', () => {
+  renderCategoriesList();
+  document.getElementById('categories-modal').style.display = 'flex';
+});
+
+document.getElementById('close-categories-modal').addEventListener('click', () => {
+  document.getElementById('categories-modal').style.display = 'none';
+});
+
+document.getElementById('new-category-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const name = document.getElementById('new-category-name').value.trim();
+  const color = document.getElementById('new-category-color').value;
+  
+  if (!name) {
+    showToast('El nombre de la categoría es requerido');
+    return;
+  }
+  
+  try {
+    const newCategory = await createCategory(name, color);
+    allCategories.push(newCategory);
+    
+    renderCategoriesList();
+    loadCategoriesIntoSelect();
+    updateCategoryFilters();
+    
+    // Limpiar formulario
+    document.getElementById('new-category-name').value = '';
+    document.getElementById('new-category-color').value = '#007bff';
+    
+    showToast('Categoría creada exitosamente');
+  } catch (err) {
+    showToast(err.message || 'Error al crear la categoría');
+  }
+});
+
+// Cerrar modal al hacer clic fuera
+window.addEventListener('click', (e) => {
+  if (e.target === document.getElementById('categories-modal')) {
+    document.getElementById('categories-modal').style.display = 'none';
+  }
+});
+
 cancelClearBtn.addEventListener('click', () => {
     clearModal.style.display = 'none';
 });
@@ -455,15 +669,19 @@ async function initApp() {
     // Configurar evento de logout
     handleLogout();
     
-    // Cargar tareas y aplicar filtros
+    // Cargar categorías y tareas
     try {
+        allCategories = await fetchCategories();
+        loadCategoriesIntoSelect();
+        updateCategoryFilters();
+        
         allTasks = await fetchTasks();
         renderList();
         updateCounters();
-        setFilterActive(currentFilter);
+        setActiveFilters();
     } catch (err) {
-        console.error('Error cargando tareas:', err);
-        showToast('Error cargando tareas');
+        console.error('Error cargando datos:', err);
+        showToast('Error cargando datos');
     }
 }
 

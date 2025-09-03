@@ -22,10 +22,11 @@
         <textarea id="description" placeholder="Descripción (opcional)"></textarea>
         <select id="category" required>
           <option value="">-- Selecciona categoría --</option>
-          <option value="casa">Casa</option>
-          <option value="universidad">Universidad</option>
-          <option value="trabajo">Trabajo</option>
+          <!-- Las categorías se cargarán dinámicamente desde el servidor -->
         </select>
+        
+        <!-- Botón para gestionar categorías -->
+        <button type="button" id="manage-categories-btn" class="secondary" style="margin-left: 8px;">Gestionar Categorías</button>
       
         <!-- Campos de fechas -->
         <label for="start-date">Fecha inicio:</label>
@@ -90,6 +91,41 @@
       <div class="modal-actions">
         <button id="confirm-clear-btn" class="danger">Limpiar</button>
         <button id="cancel-clear-btn" class="secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de gestión de categorías -->
+  <div id="categories-modal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 600px;">
+      <h3>Gestionar Categorías</h3>
+      
+      <!-- Formulario para crear nueva categoría -->
+      <div style="margin-bottom: 20px; padding: 15px; border: 1px solid var(--border); border-radius: 8px;">
+        <h4>Crear Nueva Categoría</h4>
+        <form id="new-category-form" style="display: flex; gap: 10px; align-items: end;">
+          <div style="flex: 1;">
+            <label for="new-category-name">Nombre:</label>
+            <input type="text" id="new-category-name" placeholder="Nombre de la categoría" required maxlength="100" />
+          </div>
+          <div>
+            <label for="new-category-color">Color:</label>
+            <input type="color" id="new-category-color" value="#007bff" />
+          </div>
+          <button type="submit" class="primary">Crear</button>
+        </form>
+      </div>
+
+      <!-- Lista de categorías existentes -->
+      <div style="margin-bottom: 20px;">
+        <h4>Mis Categorías</h4>
+        <div id="categories-list">
+          <!-- Las categorías se cargarán dinámicamente -->
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="close-categories-modal" class="secondary">Cerrar</button>
       </div>
     </div>
   </div>

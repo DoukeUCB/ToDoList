@@ -268,3 +268,34 @@ input[type="checkbox"], input[type="radio"] {
   min-width: 100px;
 }
 
+/* Estilos para categorías */
+#category-filters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+#category-filters strong {
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+#category-filters button {
+  font-size: 12px;
+  padding: 6px 12px;
+  border: 2px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+#category-filters button.active-filter {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.small {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+

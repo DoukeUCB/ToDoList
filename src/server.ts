@@ -6,17 +6,16 @@ import path from 'path';
 import { AppDataSource } from './database/data-source';
 import taskRoutes from './routes/taskRoutes';
 import userRoutes from './routes/userRoutes';
+import { categoryRoutes } from './routes/categoryRoutes';
 import { notFound, errorHandler } from './middleware/errorHandler';
 
 const app = express();
 
-// Configuración de CORS
 app.use(cors({
   origin: true,
   credentials: true
 }));
 
-// Configuración de sesiones
 app.use(session({
   secret: process.env.SESSION_SECRET || 'douke017',
   resave: false,
@@ -35,6 +34,7 @@ app.use(express.static(publicDir));
 // Rutas API
 app.use('/api/users', userRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/categories', categoryRoutes);
 
 app.get('/', (_req: Request, res: Response) => {
   res.sendFile(path.join(publicDir, 'views', 'index.html'));
@@ -44,10 +44,6 @@ app.get('/views/login.html', (_req: Request, res: Response) => {
   res.sendFile(path.join(publicDir, 'views', 'login.html'));
 });
 
-// health
-app.get('/health', (_req: Request, res: Response) => res.json({ status: 'ok' }));
-
-// middlewares finales
 app.use(notFound);
 app.use(errorHandler);
 

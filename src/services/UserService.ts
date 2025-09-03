@@ -22,7 +22,6 @@ export class UserService {
   }
 
   async createUser(name: string, userName: string, mail: string, password: string): Promise<User> {
-    // Verificar si el usuario o email ya existen
     const existingUserByUserName = await this.userRepository.findByUserName(userName);
     if (existingUserByUserName) {
       throw new Error('El nombre de usuario ya existe');
@@ -33,7 +32,6 @@ export class UserService {
       throw new Error('El email ya está registrado');
     }
 
-    // Encriptar la contraseña
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
@@ -50,7 +48,6 @@ export class UserService {
     
     if (name !== undefined) updateData.name = name;
     if (userName !== undefined) {
-      // Verificar que el nuevo userName no esté en uso
       const existingUser = await this.userRepository.findByUserName(userName);
       if (existingUser && existingUser.id !== id) {
         throw new Error('El nombre de usuario ya existe');
@@ -58,7 +55,6 @@ export class UserService {
       updateData.userName = userName;
     }
     if (mail !== undefined) {
-      // Verificar que el nuevo email no esté en uso
       const existingUser = await this.userRepository.findByMail(mail);
       if (existingUser && existingUser.id !== id) {
         throw new Error('El email ya está registrado');

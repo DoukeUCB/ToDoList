@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Task } from './Task';
+import { Category } from './Category';
 
 @Entity({ name: 'users' })
 export class User {
@@ -19,7 +20,10 @@ export class User {
   password!: string;
 
   @OneToMany(() => Task, task => task.user)
-  tasks!: Task[];
+  tasks?: Task[];
+
+  @OneToMany(() => Category, category => category.user)
+  categories?: Category[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
