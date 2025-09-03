@@ -177,12 +177,12 @@ async function fetchTasks() {
   return res.json();
 }
 
-async function addTask(title, description, startDate, endDate) {
+async function addTask(title, description, category, startDate, endDate) {
   const res = await fetch('/api/tasks', {
-    method: 'POST'
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ title, description, startDate, endDate, category })
+    body: JSON.stringify({ title, description, category, startDate, endDate })
   });
 
   if (!res.ok) {
@@ -244,9 +244,14 @@ document.getElementById('task-form').addEventListener('submit', async e => {
   const titleEl = document.getElementById('title');
   const descEl = document.getElementById('description');
   const catEl = document.getElementById('category');
+  const startEl = document.getElementById('start-date');
+  const endEl = document.getElementById('end-date');
+  
   const title = titleEl.value.trim();
   const description = descEl.value.trim();
   const category = catEl.value.trim();
+  const startDate = startEl.value ? new Date(startEl.value).toISOString() : null;
+  const endDate = endEl.value ? new Date(endEl.value).toISOString() : null;
 
   if (!title || !category) {
     showToast('Título y categoría son obligatorios');
@@ -254,16 +259,7 @@ document.getElementById('task-form').addEventListener('submit', async e => {
   }
 
   try {
-    await addTask(title, description, category);
-  const startEl = document.getElementById('start-date');
-  const endEl = document.getElementById('end-date');
-  const title = titleEl.value.trim();
-  const description = descEl.value.trim();
-  const startDate = startEl.value ? new Date(startEl.value).toISOString() : null;
-  const endDate = endEl.value ? new Date(endEl.value).toISOString() : null;
-  if (!title) return;
-  try {
-    await addTask(title, description, startDate, endDate);
+    await addTask(title, description, category, startDate, endDate);
     e.target.reset();
     setDateMinToday();
     titleEl.focus();

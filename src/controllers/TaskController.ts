@@ -45,12 +45,12 @@ export class TaskController {
 
   static async create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const { title, description, category } = req.body;
+      const { title, description, category, startDate, endDate } = req.body;
       const userId = req.session.userId!;
       
       if (!title) return res.status(400).json({ message: 'title required' });
       if (!category) return res.status(400).json({ message: 'category required' });
-      const created = await service.create({ title, description, userId, category });
+      const created = await service.create({ title, description, userId, category, startDate, endDate });
       res.status(201).json(created);
     } catch (e) { next(e); }
   }
