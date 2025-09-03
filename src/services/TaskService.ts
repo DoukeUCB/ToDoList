@@ -16,11 +16,11 @@ export class TaskService {
     return this.repository.findById(id);
   }
 
-  create(data: { title: string; description?: string | null }) {
+  create(data: { title: string; description?: string | null; category: string }) {
     return this.repository.create({ ...data, completed: false });
   }
 
-  async update(id: number, updates: Partial<Task>) {
+  async update(id: number, updates: Partial<Task> & { category?: string }) {
     return this.repository.update(id, updates);
   }
 

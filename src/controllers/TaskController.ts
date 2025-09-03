@@ -22,13 +22,19 @@ export class TaskController {
   }
 
   static async create(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { title, description } = req.body;
-      if (!title) return res.status(400).json({ message: 'title required' });
-      const created = await service.create({ title, description });
-      res.status(201).json(created);
-    } catch (e) { next(e); }
+   try {
+        const { title, description, category } = req.body; // extraer category
+        if (!title) return res.status(400).json({ message: 'title required' });
+        if (!category) return res.status(400).json({ message: 'category required' }); // opcional, pero recomendable
+        const created = await service.create({ title, description, category }); // enviar category
+        res.status(201).json(created);
+    } catch (e) {
+        next(e);
+    }
   }
+
+  
+
 
   static async update(req: Request, res: Response, next: NextFunction) {
     try {

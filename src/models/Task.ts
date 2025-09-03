@@ -11,6 +11,9 @@ export class Task {
   @Column({ type: 'text', nullable: true })
   description?: string | null;
 
+  @Column({ length: 50 })
+  category!: string;
+
   @Column({ default: false })
   completed!: boolean;
 
@@ -19,4 +22,7 @@ export class Task {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt!: Date;
+
+  
+
 }
