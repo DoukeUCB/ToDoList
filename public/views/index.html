@@ -20,6 +20,13 @@
       <form id="task-form" autocomplete="off">
         <input type="text" id="title" placeholder="Título *" required maxlength="255" />
         <textarea id="description" placeholder="Descripción (opcional)"></textarea>
+        <select id="category" required>
+          <option value="">-- Selecciona categoría --</option>
+          <option value="casa">Casa</option>
+          <option value="universidad">Universidad</option>
+          <option value="trabajo">Trabajo</option>
+        </select>
+      
         <!-- Campos de fechas -->
         <label for="start-date">Fecha inicio:</label>
         <input type="datetime-local" id="start-date" />
@@ -33,7 +40,7 @@
       <div><strong id="count-pending">0</strong> pendientes</div>
       <div><strong id="count-completed">0</strong> completadas</div>
       <div class="filters">
-        <button class="secondary" data-filter="all">Todas</button>
+        <button class="secondary" data-filter="all">Todas las tareas</button>
         <button class="secondary" data-filter="active">Activas</button>
         <button class="secondary" data-filter="completed">Completadas</button>
         <!-- Filtro para tareas caducadas -->

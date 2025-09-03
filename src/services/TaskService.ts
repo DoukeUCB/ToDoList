@@ -19,8 +19,9 @@ export class TaskService {
   get(id: number) {
     return this.repository.findById(id);
   }
+
   create(data: { title: string; description?: string | null;
-     startDate?: Date | null; endDate?: Date | null; userId?: number }) {
+     startDate?: Date | null; endDate?: Date | null; userId?: number; category: string }) {
     return this.repository.create({
       ...data, completed: false,
       startDate: data.startDate ?? null,
@@ -28,7 +29,7 @@ export class TaskService {
     });
   }
 
-  async update(id: number, updates: Partial<Task>) {
+  async update(id: number, updates: Partial<Task> & { category?: string }) {
     const formattedUpdates: Partial<Task> = { ...updates };
 
     if (updates.startDate) {
