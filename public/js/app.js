@@ -67,6 +67,8 @@ const editModal = document.getElementById('edit-modal');
 const editForm = document.getElementById('edit-form');
 const editTitleInput = document.getElementById('edit-title');
 const editDescriptionInput = document.getElementById('edit-description');
+const editStartDateInput = document.getElementById('edit-start-date');
+const editEndDateInput = document.getElementById('edit-end-date');
 const confirmEditBtn = document.getElementById('confirm-edit-btn');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
 let taskToEditId = null;
@@ -81,11 +83,16 @@ function esc(str='') {
 }
 
 function taskItemHtml(task) {
-  return `<li data-id="${task.id}" class="${task.completed ? 'completed' : ''} fade-in">
+  const now = new Date();
+  const isExpired = !task.completed && task.endDate && new Date(task.endDate) < now;
+  return `<li data-id="${task.id}" class="${task.completed ? 'completed' : isExpired ? 'expired' : ''} fade-in">
     <input type="checkbox" class="toggle" ${task.completed ? 'checked' : ''} />
     <div>
       <div class="title">${esc(task.title)}</div>
       ${task.description ? `<small>${esc(task.description)}</small>` : ''}
+      ${task.startDate ? `<small>Inicio: ${new Date(task.startDate).toLocaleString()}</small>` : ''}
+      ${task.endDate ? `<small>Fin: ${new Date(task.endDate).toLocaleString()}</small>` : ''}
+      ${isExpired ? `<small class="expired-label">⚠ Caducada</small>` : ''}
     </div>
     <div class="actions">
       <button class="edit secondary" title="Editar">✏️</button>
@@ -95,15 +102,18 @@ function taskItemHtml(task) {
 }
 
 function applyFilter(tasks) {
-  if (currentFilter === 'active') return tasks.filter(t => !t.completed);
+  const now = new Date();
+  if (currentFilter === 'active') return tasks.filter(t => !t.completed && (!t.endDate || new Date(t.endDate) >= now));
   if (currentFilter === 'completed') return tasks.filter(t => t.completed);
+  if (currentFilter === 'expired') return tasks.filter(t => !t.completed && t.endDate && new Date(t.endDate) < now);
   return tasks;
 }
 
 function updateCounters() {
   const total = allTasks.length;
   const completed = allTasks.filter(t => t.completed).length;
-  const pending = total - completed;
+  const expired = allTasks.filter(t => !t.completed && t.endDate && new Date(t.endDate) < new Date()).length;
+  const pending = total - completed - expired;
   document.getElementById('count-total').textContent = total;
   document.getElementById('count-completed').textContent = completed;
   document.getElementById('count-pending').textContent = pending;
@@ -124,12 +134,12 @@ async function fetchTasks() {
   if (!res.ok) throw new Error('Error cargando tareas');
   return res.json();
 }
-async function addTask(title, description) {
+async function addTask(title, description, startDate, endDate) {
   const res = await fetch('/api/tasks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ title, description })
+    body: JSON.stringify({ title, description, startDate, endDate })
   });
   if (!res.ok) {
     const data = await res.json().catch(()=>({}));
@@ -170,16 +180,34 @@ function renderList() {
   updateCounters();
 }
 
+// --- Restricción: no permitir fechas en el pasado ---
+function setDateMinToday() {
+  const now = new Date();
+  now.setSeconds(0, 0); 
+  const localISO = now.toLocaleString('sv-SE').replace(' ', 'T'); 
+
+  document.getElementById('start-date').min = localISO;
+  document.getElementById('end-date').min = localISO;
+  editStartDateInput.min = localISO;
+  editEndDateInput.min = localISO;
+}
+
+// --- Listeners ---
 document.getElementById('task-form').addEventListener('submit', async e => {
   e.preventDefault();
   const titleEl = document.getElementById('title');
   const descEl = document.getElementById('description');
+  const startEl = document.getElementById('start-date');
+  const endEl = document.getElementById('end-date');
   const title = titleEl.value.trim();
   const description = descEl.value.trim();
+  const startDate = startEl.value ? new Date(startEl.value).toISOString() : null;
+  const endDate = endEl.value ? new Date(endEl.value).toISOString() : null;
   if (!title) return;
   try {
-    await addTask(title, description);
+    await addTask(title, description, startDate, endDate);
     e.target.reset();
+    setDateMinToday();
     titleEl.focus();
   } catch(err){
     showToast(err.message);
@@ -206,18 +234,18 @@ document.getElementById('tasks').addEventListener('click', async e => {
     toggleTask(taskId, target.checked);
   }
 
-    if (e.target.classList.contains('edit')) {
+  if (e.target.classList.contains('edit')) {
     const task = allTasks.find(t => t.id === taskId);
     if (!task) return;
-
     taskToEditId = taskId;
     editTitleInput.value = task.title;
     editDescriptionInput.value = task.description || '';
+    editStartDateInput.value = task.startDate ? new Date(task.startDate).toISOString().slice(0,16) : '';
+    editEndDateInput.value = task.endDate ? new Date(task.endDate).toISOString().slice(0,16) : '';
     editModal.style.display = 'flex';
     editTitleInput.focus();
   }
 });
-
 
 document.querySelectorAll('.filters button[data-filter]').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -252,6 +280,19 @@ filterButtons.forEach(button => {
 });
 
 // Event listeners para modal de eliminación
+// --- Inicio ---
+(async function init(){
+  try {
+    allTasks = await fetchTasks();
+    document.querySelector(`.filters button[data-filter="${currentFilter}"]`)?.classList.add("active");
+    renderList();
+    setDateMinToday();
+  } catch(e){
+    showToast(e.message);
+  }
+})();
+
+// --- Event listeners para modal de eliminación ---
 confirmDeleteBtn.addEventListener('click', () => {
     if (taskToDeleteId !== null) {
         deleteTask(taskToDeleteId);
@@ -265,27 +306,31 @@ cancelDeleteBtn.addEventListener('click', () => {
     confirmModal.style.display = 'none';
 });
 
-// Event listeners para modal de edición
+// --- Event listeners para modal de edición ---
 editForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (taskToEditId !== null) {
         const newTitle = editTitleInput.value.trim();
         const newDescription = editDescriptionInput.value.trim();
-        
+        const newStartDate = editStartDateInput.value ? new Date(editStartDateInput.value).toISOString() : null;
+        const newEndDate = editEndDateInput.value ? new Date(editEndDateInput.value).toISOString() : null;
+
         if (!newTitle) return;
-        
+
         try {
             await fetch(`/api/tasks/${taskToEditId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ title: newTitle, description: newDescription })
+                body: JSON.stringify({ title: newTitle, description: newDescription, startDate: newStartDate, endDate: newEndDate })
             });
 
             const task = allTasks.find(t => t.id === taskToEditId);
             if (task) {
                 task.title = newTitle;
                 task.description = newDescription;
+                task.startDate = newStartDate;
+                task.endDate = newEndDate;
             }
 
             renderList();
@@ -302,7 +347,7 @@ cancelEditBtn.addEventListener('click', () => {
     editModal.style.display = 'none';
 });
 
-// Event listeners para modal de limpiar
+// --- Event listeners para modal de limpiar ---
 confirmClearBtn.addEventListener('click', async () => {
     try {
         const completed = allTasks.filter(t => t.completed);
@@ -323,6 +368,7 @@ cancelClearBtn.addEventListener('click', () => {
     clearModal.style.display = 'none';
 });
 
+// --- Cerrar modales al hacer clic fuera de ellos ---
 window.addEventListener('click', (e) => {
     if (e.target === confirmModal) {
         taskToDeleteId = null;

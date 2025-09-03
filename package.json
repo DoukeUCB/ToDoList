@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc -p tsconfig.json",
-    "start": "node dist/server.js",
-    "db:sync": "ts-node-dev src/database/sync.ts"
+  "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+  "build": "tsc -p tsconfig.json",
+  "start": "node dist/server.js",
+  "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d src/database/data-source.ts"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -24,7 +24,9 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^20.11.30",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
+    "typeorm": "^0.3.26",
     "typescript": "^5.4.0"
   }
 }

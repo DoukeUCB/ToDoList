@@ -21,6 +21,11 @@ export class Task {
 
   @Column({ name: 'user_id', nullable: true })
   userId?: number;
+  @Column({ type: 'datetime', nullable: true })
+  startDate?: Date | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  endDate?: Date | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
