@@ -29,10 +29,13 @@
         <button type="button" id="manage-categories-btn" class="secondary" style="margin-left: 8px;">Gestionar Categorías</button>
       
         <!-- Campos de fechas -->
-        <label for="start-date">Fecha inicio:</label>
-        <input type="datetime-local" id="start-date" />
-        <label for="end-date">Fecha fin:</label>
-        <input type="datetime-local" id="end-date" />
+        <div class="date-row">
+          <label for="start-date">Fecha inicio:</label>
+          <input type="datetime-local" id="start-date" />
+
+          <label for="end-date">Fecha fin:</label>
+          <input type="datetime-local" id="end-date" />
+        </div>
         <button type="submit">Añadir</button>
       </form>
     </div>
@@ -72,10 +75,18 @@
         <input type="text" id="edit-title" placeholder="Título *" required maxlength="255" />
         <textarea id="edit-description" placeholder="Descripción (opcional)"></textarea>
         <!-- Fechas Editables -->
-        <label for="edit-start-date">Fecha inicio:</label>
-        <input type="datetime-local" id="edit-start-date" />
-        <label for="edit-end-date">Fecha fin:</label>
-        <input type="datetime-local" id="edit-end-date" />
+        <div class="dates-stack">
+          <div class="date-field">
+            <label for="edit-start-date">Fecha inicio:</label>
+            <input type="datetime-local" id="edit-start-date" />
+          </div>
+
+          <div class="date-field">
+            <label for="edit-end-date">Fecha fin:</label>
+            <input type="datetime-local" id="edit-end-date" />
+          </div>
+        </div>
+
         <div class="modal-actions">
           <button type="submit" id="confirm-edit-btn">Guardar</button>
           <button type="button" id="cancel-edit-btn" class="secondary">Cancelar</button>
@@ -103,7 +114,7 @@
       <!-- Formulario para crear nueva categoría -->
       <div style="margin-bottom: 20px; padding: 15px; border: 1px solid var(--border); border-radius: 8px;">
         <h4>Crear Nueva Categoría</h4>
-        <form id="new-category-form" style="display: flex; gap: 10px; align-items: end;">
+        <form id="new-category-form" style="display: flex; gap: 10px; align-items: center;">
           <div style="flex: 1;">
             <label for="new-category-name">Nombre:</label>
             <input type="text" id="new-category-name" placeholder="Nombre de la categoría" required maxlength="100" />
