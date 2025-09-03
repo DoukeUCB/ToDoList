@@ -1,0 +1,11 @@
+{
+  "name": "todolist-demo",
+  "runtime": "node",
+  "buildCommand": "npm install && npm run build",
+  "startCommand": "npm run sync && npm start",
+  "env": {
+    "NODE_ENV": "production",
+    "SESSION_SECRET": "douke017",
+    "DB_PATH": "data/database.sqlite"
+  }
+}
