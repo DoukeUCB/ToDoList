@@ -1,21 +1,47 @@
 import 'reflect-metadata';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import session from 'express-session';
 import path from 'path';
 import { AppDataSource } from './database/data-source';
 import taskRoutes from './routes/taskRoutes';
+import userRoutes from './routes/userRoutes';
 import { notFound, errorHandler } from './middleware/errorHandler';
 
 const app = express();
-app.use(cors());
+
+// Configuración de CORS
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+
+// Configuración de sesiones
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'douke017',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false,
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 horas
+  }
+}));
+
 app.use(express.json());
 const publicDir = path.join(process.cwd(), 'public');
 app.use(express.static(publicDir));
 
+// Rutas API
+app.use('/api/users', userRoutes);
 app.use('/api/tasks', taskRoutes);
 
 app.get('/', (_req: Request, res: Response) => {
   res.sendFile(path.join(publicDir, 'views', 'index.html'));
+});
+
+app.get('/views/login.html', (_req: Request, res: Response) => {
+  res.sendFile(path.join(publicDir, 'views', 'login.html'));
 });
 
 // health

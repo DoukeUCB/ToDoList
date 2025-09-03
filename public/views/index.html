@@ -8,7 +8,13 @@
 </head>
 <body>
   <div class="container fade-in" id="app-root">
-    <button class="theme-toggle secondary" id="theme-btn" title="Cambiar tema">🌙</button>
+    <div class="header-bar">
+      <button class="theme-toggle secondary" id="theme-btn" title="Cambiar tema">🌙</button>
+      <div class="user-info" id="user-info" style="display: none;">
+        <span id="user-name"></span>
+        <button class="secondary logout-btn" id="logout-btn" title="Cerrar sesión">Salir</button>
+      </div>
+    </div>
     <h1>ToDo <span class="badge">TS</span></h1>
     <div class="top-bar">
       <form id="task-form" autocomplete="off">

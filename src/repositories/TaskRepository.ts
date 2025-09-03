@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { AppDataSource } from '../database/data-source';
 import { Task } from '../models/Task';
 
@@ -10,11 +10,26 @@ export class TaskRepository {
   }
 
   findAll() {
-    return this.repo.find();
+    return this.repo.find({
+      relations: ['user']
+    });
+  }
+
+  findByUserId(userId: number) {
+    return this.repo.find({
+      where: [
+        { userId },
+        { userId: IsNull() } // También incluir tareas sin usuario asignado
+      ],
+      relations: ['user']
+    });
   }
 
   findById(id: number) {
-    return this.repo.findOne({ where: { id } });
+    return this.repo.findOne({
+      where: { id },
+      relations: ['user']
+    });
   }
 
   create(taskData: Partial<Task>) {

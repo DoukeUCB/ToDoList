@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from './User';
 
 @Entity({ name: 'tasks' })
 export class Task {
@@ -14,6 +15,12 @@ export class Task {
   @Column({ default: false })
   completed!: boolean;
 
+  @ManyToOne(() => User, user => user.tasks, { nullable: true })
+  @JoinColumn({ name: 'user_id' })
+  user?: User;
+
+  @Column({ name: 'user_id', nullable: true })
+  userId?: number;
   @Column({ type: 'datetime', nullable: true })
   startDate?: Date | null;
 

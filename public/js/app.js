@@ -1,13 +1,68 @@
+let currentUser = null;
+
+async function checkAuth() {
+  try {
+    const response = await fetch('/api/users/me', {
+      credentials: 'include'
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      currentUser = data.user;
+      showUserInfo();
+      return true;
+    } else {
+      window.location.href = '/views/login.html';
+      return false;
+    }
+  } catch (error) {
+    console.error('Error verificando autenticación:', error);
+    window.location.href = '/views/login.html';
+    return false;
+  }
+}
+
+function showUserInfo() {
+  const userInfo = document.getElementById('user-info');
+  const userName = document.getElementById('user-name');
+  
+  if (currentUser && userInfo && userName) {
+    userName.textContent = `Hola, ${currentUser.name}`;
+    userInfo.style.display = 'flex';
+  }
+}
+
+function handleLogout() {
+  const logoutBtn = document.getElementById('logout-btn');
+  
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        const response = await fetch('/api/users/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          window.location.href = '/views/login.html';
+        } else {
+          console.error('Error al cerrar sesión');
+        }
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+      }
+    });
+  }
+}
+
 let allTasks = [];
 let currentFilter = localStorage.getItem('filter') || 'all';
 
-// Modal de eliminación
 const confirmModal = document.getElementById('confirm-modal');
 const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
 const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
 let taskToDeleteId = null;
 
-// Modal de edición
 const editModal = document.getElementById('edit-modal');
 const editForm = document.getElementById('edit-form');
 const editTitleInput = document.getElementById('edit-title');
@@ -18,7 +73,6 @@ const confirmEditBtn = document.getElementById('confirm-edit-btn');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
 let taskToEditId = null;
 
-// Modal de limpiar
 const clearModal = document.getElementById('clear-modal');
 const confirmClearBtn = document.getElementById('confirm-clear-btn');
 const cancelClearBtn = document.getElementById('cancel-clear-btn');
@@ -74,7 +128,9 @@ function showToast(msg) {
 
 // --- API ---
 async function fetchTasks() {
-  const res = await fetch('/api/tasks');
+  const res = await fetch('/api/tasks', {
+    credentials: 'include'
+  });
   if (!res.ok) throw new Error('Error cargando tareas');
   return res.json();
 }
@@ -82,6 +138,7 @@ async function addTask(title, description, startDate, endDate) {
   const res = await fetch('/api/tasks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ title, description, startDate, endDate })
   });
   if (!res.ok) {
@@ -96,6 +153,7 @@ async function toggleTask(id, completed) {
   await fetch(`/api/tasks/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ completed })
   });
   const task = allTasks.find(t=>t.id==id);
@@ -103,7 +161,10 @@ async function toggleTask(id, completed) {
   renderList();
 }
 async function deleteTask(id) {
-  await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+  await fetch(`/api/tasks/${id}`, { 
+    method: 'DELETE',
+    credentials: 'include'
+  });
   allTasks = allTasks.filter(t=>t.id!=id);
   renderList();
 }
@@ -209,6 +270,16 @@ const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers
 applyTheme(savedTheme);
 themeBtn.addEventListener('click', ()=> applyTheme(document.documentElement.classList.contains('dark') ? 'light':'dark'));
 
+const filterButtons = document.querySelectorAll(".filters .secondary");
+
+filterButtons.forEach(button => {
+  button.addEventListener("click", function () {
+    filterButtons.forEach(btn => btn.classList.remove("active-filter"));
+    this.classList.add("active-filter");
+  });
+});
+
+// Event listeners para modal de eliminación
 // --- Inicio ---
 (async function init(){
   try {
@@ -250,6 +321,7 @@ editForm.addEventListener('submit', async (e) => {
             await fetch(`/api/tasks/${taskToEditId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ title: newTitle, description: newDescription, startDate: newStartDate, endDate: newEndDate })
             });
 
@@ -279,7 +351,10 @@ cancelEditBtn.addEventListener('click', () => {
 confirmClearBtn.addEventListener('click', async () => {
     try {
         const completed = allTasks.filter(t => t.completed);
-        await Promise.all(completed.map(t => fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })));
+        await Promise.all(completed.map(t => fetch(`/api/tasks/${t.id}`, { 
+            method: 'DELETE',
+            credentials: 'include'
+        })));
         allTasks = allTasks.filter(t => !t.completed);
         renderList();
         showToast('Tareas completadas eliminadas');
@@ -307,3 +382,25 @@ window.addEventListener('click', (e) => {
         clearModal.style.display = 'none';
     }
 });
+
+async function initApp() {
+    // Verificar autenticación primero
+    const isAuthenticated = await checkAuth();
+    if (!isAuthenticated) return;
+    
+    // Configurar evento de logout
+    handleLogout();
+    
+    // Cargar tareas y aplicar filtros
+    try {
+        allTasks = await fetchTasks();
+        renderList();
+        updateCounters();
+        setFilterActive(currentFilter);
+    } catch (err) {
+        console.error('Error cargando tareas:', err);
+        showToast('Error cargando tareas');
+    }
+}
+
+initApp();

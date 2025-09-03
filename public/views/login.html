@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login | ToDo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/css/login.css" />
+  
+</head>
+<body>
+  <div class="container fade-in">
+    <button class="theme-toggle secondary" id="theme-btn" title="Cambiar tema">🌙</button>
+    
+    <div class="auth-container">
+      <h1 style="text-align: center; margin-bottom: 2rem;">
+        ToDo <span class="badge">TS</span>
+      </h1>
+      
+      <div id="error-message" class="error-message"></div>
+      <div id="success-message" class="success-message"></div>
+      
+      <!-- Formulario de Login -->
+      <form id="login-form" class="auth-form">
+        <h2 style="text-align: center; margin-bottom: 1rem;">Iniciar Sesión</h2>
+        <input type="text" id="login-username" placeholder="Nombre de usuario" required />
+        <input type="password" id="login-password" placeholder="Contraseña" required />
+        <button type="submit">Iniciar Sesión</button>
+      </form>
+      
+      <!-- Formulario de Registro -->
+      <form id="register-form" class="auth-form" style="display: none;">
+        <h2 style="text-align: center; margin-bottom: 1rem;">Registrarse</h2>
+        <input type="text" id="register-name" placeholder="Nombre completo" required />
+        <input type="text" id="register-username" placeholder="Nombre de usuario" required />
+        <input type="email" id="register-email" placeholder="Correo electrónico" required />
+        <input type="password" id="register-password" placeholder="Contraseña" required />
+        <button type="submit">Registrarse</button>
+      </form>
+      
+      <div class="auth-toggle">
+        <span id="toggle-text">¿No tienes cuenta?</span>
+        <a href="#" id="toggle-form">Regístrate aquí</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notificaciones -->
+  <div id="toast" class="toast" style="display:none;"></div>
+
+  <script>
+    // Tema
+    const themeBtn = document.getElementById('theme-btn');
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.body.className = currentTheme;
+    themeBtn.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+
+    themeBtn.addEventListener('click', () => {
+      const newTheme = document.body.className === 'dark' ? 'light' : 'dark';
+      document.body.className = newTheme;
+      localStorage.setItem('theme', newTheme);
+      themeBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    });
+
+    // Elementos del DOM
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const toggleForm = document.getElementById('toggle-form');
+    const toggleText = document.getElementById('toggle-text');
+    const errorMessage = document.getElementById('error-message');
+    const successMessage = document.getElementById('success-message');
+    const toast = document.getElementById('toast');
+
+    let isLoginMode = true;
+
+    // Alternar entre login y registro
+    toggleForm.addEventListener('click', (e) => {
+      e.preventDefault();
+      isLoginMode = !isLoginMode;
+      
+      if (isLoginMode) {
+        loginForm.style.display = 'flex';
+        registerForm.style.display = 'none';
+        toggleText.textContent = '¿No tienes cuenta?';
+        toggleForm.textContent = 'Regístrate aquí';
+      } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'flex';
+        toggleText.textContent = '¿Ya tienes cuenta?';
+        toggleForm.textContent = 'Inicia sesión aquí';
+      }
+      
+      hideMessages();
+    });
+
+    // Funciones de utilidad
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.style.display = 'block';
+      successMessage.style.display = 'none';
+    }
+
+    function showSuccess(message) {
+      successMessage.textContent = message;
+      successMessage.style.display = 'block';
+      errorMessage.style.display = 'none';
+    }
+
+    function hideMessages() {
+      errorMessage.style.display = 'none';
+      successMessage.style.display = 'none';
+    }
+
+    function showToast(message, type = 'success') {
+      toast.textContent = message;
+      toast.className = `toast ${type}`;
+      toast.style.display = 'block';
+      
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3000);
+    }
+
+    // Verificar si ya está logueado
+    async function checkAuthStatus() {
+      try {
+        const response = await fetch('/api/users/me', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          // Ya está logueado, redirigir a la app principal
+          window.location.href = '/';
+        }
+      } catch (error) {
+        // No está logueado, continuar en la página de login
+      }
+    }
+
+    // Manejar login
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideMessages();
+      
+      const userName = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+      
+      try {
+        const response = await fetch('/api/users/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ userName, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          showSuccess('Login exitoso. Redirigiendo...');
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1000);
+        } else {
+          showError(data.error || 'Error al iniciar sesión');
+        }
+      } catch (error) {
+        showError('Error de conexión. Intenta nuevamente.');
+      }
+    });
+
+    // Manejar registro
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideMessages();
+      
+      const name = document.getElementById('register-name').value;
+      const userName = document.getElementById('register-username').value;
+      const mail = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+      
+      try {
+        const response = await fetch('/api/users/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name, userName, mail, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          showSuccess('Registro exitoso. Puedes iniciar sesión ahora.');
+          registerForm.reset();
+          
+          // Cambiar automáticamente al formulario de login
+          setTimeout(() => {
+            isLoginMode = true;
+            loginForm.style.display = 'flex';
+            registerForm.style.display = 'none';
+            toggleText.textContent = '¿No tienes cuenta?';
+            toggleForm.textContent = 'Regístrate aquí';
+            hideMessages();
+          }, 2000);
+        } else {
+          showError(data.error || 'Error al registrarse');
+        }
+      } catch (error) {
+        showError('Error de conexión. Intenta nuevamente.');
+      }
+    });
+
+    // Verificar estado de autenticación al cargar la página
+    checkAuthStatus();
+  </script>
+</body>
+</html>
