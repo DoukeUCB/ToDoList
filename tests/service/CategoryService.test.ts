@@ -1,8 +1,8 @@
-import { CategoryService } from '../src/services/CategoryService';
-import { CategoryRepository } from '../src/repositories/CategoryRepository';
-import { Category } from '../src/models/Category';
+import { CategoryService } from '../../src/services/CategoryService';
+import { CategoryRepository } from '../../src/repositories/CategoryRepository';
+import { Category } from '../../src/models/Category';
 
-jest.mock('../src/repositories/CategoryRepository');
+jest.mock('../../src/repositories/CategoryRepository');
 
 const mockCategoryRepository = CategoryRepository as jest.MockedClass<typeof CategoryRepository>;
 

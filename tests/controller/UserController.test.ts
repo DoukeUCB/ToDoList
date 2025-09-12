@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { UserController } from '../src/controllers/UserController';
-import { UserService } from '../src/services/UserService';
-import { User } from '../src/models/User';
+import { UserController } from '../../src/controllers/UserController';
+import { UserService } from '../../src/services/UserService';
+import { User } from '../../src/models/User';
 
-jest.mock('../src/services/UserService');
+jest.mock('../../src/services/UserService');
 
 const mockUserService = UserService as jest.MockedClass<typeof UserService>;
 
@@ -140,6 +140,119 @@ describe('UserController', () => {
 
       expect(statusMock).toHaveBeenCalledWith(401);
       expect(jsonMock).toHaveBeenCalledWith({ error: 'Credenciales inválidas' });
+    });
+  });
+
+  describe('logout', () => {
+    it('should log out successfully', async () => {
+      mockRequest = {
+        session: {
+          destroy: jest.fn((callback) => callback(null))
+        } as any
+      };
+
+      await userController.logout(mockRequest as any, mockResponse as Response);
+
+      expect((mockRequest.session as any).destroy).toHaveBeenCalled();
+      expect(jsonMock).toHaveBeenCalledWith({ message: 'Logout exitoso' });
+    });
+
+    it('should handle errors during logout', async () => {
+      mockRequest = {
+        session: {
+          destroy: jest.fn((callback) => callback(new Error('Logout error')))
+        } as any
+      };
+
+      await userController.logout(mockRequest as any, mockResponse as Response);
+
+      expect((mockRequest.session as any).destroy).toHaveBeenCalled();
+      expect(statusMock).toHaveBeenCalledWith(500);
+      expect(jsonMock).toHaveBeenCalledWith({ error: 'Error al cerrar sesión' });
+    });
+  });
+
+  describe('getCurrentUser', () => {
+    it('should return the current user if session is active', async () => {
+      mockRequest = {
+        session: {
+          user: { id: 1, name: 'Test', userName: 'testuser', mail: 'test@example.com' }
+        } as any
+      };
+
+      await userController.getCurrentUser(mockRequest as any, mockResponse as Response);
+
+      expect(jsonMock).toHaveBeenCalledWith({ user: (mockRequest.session as any).user });
+    });
+
+    it('should return 401 if no active session', async () => {
+      mockRequest = { session: {} as any };
+
+      await userController.getCurrentUser(mockRequest as any, mockResponse as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(401);
+      expect(jsonMock).toHaveBeenCalledWith({ error: 'No hay sesión activa' });
+    });
+  });
+
+  describe('updateUser', () => {
+    it('should update user successfully', async () => {
+      const updatedUser = { id: 1, name: 'Updated', userName: 'updateduser', mail: 'updated@example.com', password: 'password', createdAt: new Date(), updatedAt: new Date() };
+      mockRequest = {
+        params: { id: '1' },
+        body: { name: 'Updated', userName: 'updateduser', mail: 'updated@example.com' },
+        session: { userId: 1 } as any
+      };
+      mockService.updateUser.mockResolvedValue(updatedUser);
+
+      await userController.updateUser(mockRequest as any, mockResponse as Response);
+
+      const { password, ...expectedUser } = updatedUser;
+      expect(mockService.updateUser).toHaveBeenCalledWith(1, 'Updated', 'updateduser', 'updated@example.com', undefined);
+      expect(jsonMock).toHaveBeenCalledWith({
+        message: 'Usuario actualizado exitosamente',
+        user: expectedUser
+      });
+    });
+
+    it('should return 403 if user tries to update another user', async () => {
+      mockRequest = {
+        params: { id: '2' },
+        session: { userId: 1 } as any
+      };
+
+      await userController.updateUser(mockRequest as any, mockResponse as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(403);
+      expect(jsonMock).toHaveBeenCalledWith({ error: 'No tienes permisos para actualizar este usuario' });
+    });
+  });
+
+  describe('deleteUser', () => {
+    it('should delete user successfully', async () => {
+      mockRequest = {
+        params: { id: '1' },
+        session: { userId: 1, destroy: jest.fn((callback) => callback(null)) } as any
+      };
+      mockService.deleteUser.mockResolvedValue(true);
+
+      await userController.deleteUser(mockRequest as any, mockResponse as Response);
+
+      expect(mockService.deleteUser).toHaveBeenCalledWith(1);
+      expect((mockRequest.session as any).destroy).toHaveBeenCalled();
+      expect(jsonMock).toHaveBeenCalledWith({ message: 'Usuario eliminado exitosamente' });
+    });
+
+    it('should return 403 if user tries to delete another user', async () => {
+      mockRequest = {
+        params: { id: '2' },
+        session: { userId: 1 } as any
+      };
+
+      await userController.deleteUser(mockRequest as any, mockResponse as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(403);
+      expect(jsonMock).toHaveBeenCalledWith({ error: 'No tienes permisos para eliminar este usuario' });
     });
   });
 });

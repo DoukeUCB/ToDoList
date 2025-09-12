@@ -13,8 +13,6 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
-const service = new CategoryService();
-
 class HttpError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -24,6 +22,12 @@ class HttpError extends Error {
 }
 
 export class CategoryController {
+  private readonly service: CategoryService;
+
+  constructor(service: CategoryService) {
+    this.service = service;
+  }
+
   private static getUserId(req: AuthenticatedRequest) {
     const userId = req.session.userId;
     if (typeof userId !== 'number') {
@@ -75,41 +79,35 @@ export class CategoryController {
     }
   }
 
-  static async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const userId = this.getUserId(req);
-      const categories = await service.listByUser(userId);
+      const userId = CategoryController.getUserId(req);
+      const categories = await this.service.listByUser(userId);
       res.json(categories);
     } catch (e) {
       next(e);
     }
   }
 
-  static async get(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-    try {
-      const id = this.parseId(req.params.id);
-      const userId = this.getUserId(req);
-
-      const category = await service.get(id);
-      this.ensureExists(category, 'Category not found');
-      this.ensureReadable(category, userId);
-
-      res.json(category);
-    } catch (e) {
-      next(e);
-    }
+  async get(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    const id = CategoryController.parseId(req.params.id);
+    const userId = CategoryController.getUserId(req);
+    const category = await this.service.get(id);
+    CategoryController.ensureExists(category, 'Category not found');
+    CategoryController.ensureReadable(category, userId);
+    res.json(category);
   }
 
-  static async create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  async create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { name, color } = req.body;
-      const userId = this.getUserId(req);
+      const userId = CategoryController.getUserId(req);
 
       if (!name?.trim()) {
         return res.status(400).json({ message: 'El nombre de la categoría es requerido' });
       }
 
-      const created = await service.create({
+      const created = await this.service.create({
         name: name.trim(),
         color: color || '#007bff',
         userId,
@@ -121,44 +119,25 @@ export class CategoryController {
     }
   }
 
-  static async update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-    try {
-      const id = this.parseId(req.params.id);
-      const userId = this.getUserId(req);
-
-      const existing = await service.get(id);
-      this.ensureExists(existing, 'Category not found');
-
-      this.ensureNotDefault(existing, 'update');
-      this.ensureOwnership(existing, userId, 'modify');
-
-      const updates = req.body;
-      if (updates.name) {
-        updates.name = updates.name.trim();
-      }
-
-      const updated = await service.update(id, updates);
-      res.json(updated);
-    } catch (e) {
-      next(e);
-    }
+  async update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    const id = CategoryController.parseId(req.params.id);
+    const userId = CategoryController.getUserId(req);
+    const existing = await this.service.get(id);
+    CategoryController.ensureExists(existing, 'Category not found');
+    CategoryController.ensureNotDefault(existing, 'update');
+    CategoryController.ensureOwnership(existing, userId, 'modify');
+    const updated = await this.service.update(id, req.body);
+    res.json(updated);
   }
 
-  static async delete(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-    try {
-      const id = this.parseId(req.params.id);
-      const userId = this.getUserId(req);
-
-      const existing = await service.get(id);
-      this.ensureExists(existing, 'Category not found');
-
-      this.ensureNotDefault(existing, 'delete');
-      this.ensureOwnership(existing, userId, 'delete');
-
-      await service.delete(id);
-      res.status(204).send();
-    } catch (e) {
-      next(e);
-    }
+  async delete(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    const id = CategoryController.parseId(req.params.id);
+    const userId = CategoryController.getUserId(req);
+    const existing = await this.service.get(id);
+    CategoryController.ensureExists(existing, 'Category not found');
+    CategoryController.ensureNotDefault(existing, 'delete');
+    CategoryController.ensureOwnership(existing, userId, 'delete');
+    await this.service.delete(id);
+    res.status(204).send();
   }
 }

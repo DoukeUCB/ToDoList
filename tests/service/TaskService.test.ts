@@ -1,8 +1,8 @@
-import { TaskService } from '../src/services/TaskService';
-import { TaskRepository } from '../src/repositories/TaskRepository';
-import { Task } from '../src/models/Task';
+import { TaskService } from '../../src/services/TaskService';
+import { TaskRepository } from '../../src/repositories/TaskRepository';
+import { Task } from '../../src/models/Task';
 
-jest.mock('../src/repositories/TaskRepository');
+jest.mock('../../src/repositories/TaskRepository');
 
 const mockTaskRepository = TaskRepository as jest.MockedClass<typeof TaskRepository>;
 
