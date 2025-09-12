@@ -2,7 +2,7 @@ import { CategoryRepository } from '../repositories/CategoryRepository';
 import { Category } from '../models/Category';
 
 export class CategoryService {
-  private repo = new CategoryRepository();
+  private readonly repo = new CategoryRepository();
 
   async listByUser(userId: number): Promise<Category[]> {
     return this.repo.findByUserId(userId);
@@ -15,7 +15,7 @@ export class CategoryService {
   async create(data: { name: string; color?: string; userId: number }): Promise<Category> {
     const categoryData = {
       name: data.name,
-      color: data.color || '#007bff',
+      color: data.color ?? '#007bff',
       userId: data.userId,
       isDefault: false
     };

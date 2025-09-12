@@ -413,48 +413,13 @@ input[type="time"]::after {
   white-space: nowrap;
 }
 
-/* Input ocupa el resto */
-.date-field input[type="datetime-local"] {
-  flex: 1 1 auto;
-  min-width: 0;
-}
 /* =========================
    Fechas en filas (modal y form)
    ========================= */
-.dates-stack{
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-  width:100%;
-}
-.date-field{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  width:100%;
-  min-width:0;
-}
-.date-field label{
-  flex:0 0 110px;      /* ancho fijo del label para alinear */
-  white-space:nowrap;
-  font-weight:600;
-  font-size:.9rem;
-}
 .date-field input[type="datetime-local"]{
   flex:1 1 auto;       /* el input ocupa el resto */
   min-width:0;         /* evita overflow */
 }
-
-/* (Si también usas las fechas en la parte superior del form principal) */
-.date-row{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  flex-wrap:wrap;      /* permite saltar de línea en pantallas pequeñas */
-  margin:12px 0;
-}
-.date-row label{ font-weight:600; white-space:nowrap; }
-.date-row input[type="datetime-local"]{ flex:1 1 auto; min-width:160px; }
 
 /* =========================
    Botón "Cerrar" del modal
@@ -539,6 +504,4 @@ input[type="time"]::after {
   .dd-btn{ padding:10px 12px; }
   #manage-categories-btn{ width:100%; }
 }
-#new-category-form button {
-  margin-top: 0px; /* 👈 súbelo unos pixeles */
-}
+

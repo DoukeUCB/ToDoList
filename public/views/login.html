@@ -128,11 +128,10 @@
         });
         
         if (response.ok) {
-          // Ya está logueado, redirigir a la app principal
           window.location.href = '/';
         }
       } catch (error) {
-        // No está logueado, continuar en la página de login
+        console.error('Error en verificación de estado de autenticación:', error);
       }
     }
 
@@ -165,6 +164,7 @@
           showError(data.error || 'Error al iniciar sesión');
         }
       } catch (error) {
+        console.error('Error en login:', error);
         showError('Error de conexión. Intenta nuevamente.');
       }
     });
@@ -207,6 +207,7 @@
           showError(data.error || 'Error al registrarse');
         }
       } catch (error) {
+        console.error('Error en registro:', error);
         showError('Error de conexión. Intenta nuevamente.');
       }
     });
