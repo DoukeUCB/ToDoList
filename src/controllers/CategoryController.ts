@@ -16,6 +16,48 @@ interface AuthenticatedRequest extends Request {
 const service = new CategoryService();
 
 export class CategoryController {
+  private static async validateIdAndGetCategory(id: number): Promise<any> {
+    if (Number.isNaN(id)) {
+      const error = new Error('Invalid id');
+      (error as any).status = 400;
+      throw error;
+    }
+    const category = await service.get(id);
+    if (!category) {
+      const error = new Error('Category not found');
+      (error as any).status = 404;
+      throw error;
+    }
+    return category;
+
+  }
+
+  private static checkCategoryAccess(category: any, userId: number, allowDefault: boolean): void {
+    if (!allowDefault && category.isDefault) {
+      const error = new Error('No se pueden modificar las categorías por defecto');
+      (error as any).status = 403;
+      throw error;
+    }
+    if (!category.isDefault && category.userId !== userId) {
+      const error = new Error(allowDefault ? 'No tienes permisos para acceder a esta categoría' : 'No tienes permisos para modificar esta categoría');
+      (error as any).status = 403;
+      throw error;
+    }
+  }
+
+  private static checkCategoryAccessForDelete(category: any, userId: number): void {
+    if (category.isDefault) {
+      const error = new Error('No se pueden eliminar las categorías por defecto');
+      (error as any).status = 403;
+      throw error;
+    }
+    if (category.userId !== userId) {
+      const error = new Error('No tienes permisos para eliminar esta categoría');
+      (error as any).status = 403;
+      throw error;
+    }
+  }
+
   static async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.session.userId!;
@@ -30,19 +72,13 @@ export class CategoryController {
     try {
       const id = Number(req.params.id);
       const userId = req.session.userId!;
-      
-      if (Number.isNaN(id)) return res.status(400).json({ message: 'Invalid id' });
-      
-      const category = await service.get(id);
-      if (!category) return res.status(404).json({ message: 'Category not found' });
-      
-      // Verificar que la categoría pertenece al usuario o es una categoría por defecto
-      if (!category.isDefault && category.userId !== userId) {
-        return res.status(403).json({ message: 'No tienes permisos para acceder a esta categoría' });
-      }
-      
+      const category = await this.validateIdAndGetCategory(id);
+      this.checkCategoryAccess(category, userId, true);
       res.json(category);
-    } catch (e) { 
+    } catch (e: any) { 
+      if (e.status) {
+        return res.status(e.status).json({ message: e.message });
+      }
       next(e); 
     }
   }
@@ -52,7 +88,7 @@ export class CategoryController {
       const { name, color } = req.body;
       const userId = req.session.userId!;
       
-      if (!name || !name.trim()) {
+      if (!name?.trim()) {
         return res.status(400).json({ message: 'El nombre de la categoría es requerido' });
       }
 
@@ -72,20 +108,8 @@ export class CategoryController {
     try {
       const id = Number(req.params.id);
       const userId = req.session.userId!;
-      
-      if (Number.isNaN(id)) return res.status(400).json({ message: 'Invalid id' });
-      
-      const existing = await service.get(id);
-      if (!existing) return res.status(404).json({ message: 'Category not found' });
-      
-      // Verificar que la categoría pertenece al usuario y no es una categoría por defecto
-      if (existing.isDefault) {
-        return res.status(403).json({ message: 'No se pueden modificar las categorías por defecto' });
-      }
-      
-      if (existing.userId !== userId) {
-        return res.status(403).json({ message: 'No tienes permisos para modificar esta categoría' });
-      }
+      const category = await this.validateIdAndGetCategory(id);
+      this.checkCategoryAccess(category, userId, false);
       
       const updates = req.body;
       if (updates.name) {
@@ -94,7 +118,10 @@ export class CategoryController {
       
       const updated = await service.update(id, updates);
       res.json(updated);
-    } catch (e) { 
+    } catch (e: any) { 
+      if (e.status) {
+        return res.status(e.status).json({ message: e.message });
+      }
       next(e); 
     }
   }
@@ -103,24 +130,15 @@ export class CategoryController {
     try {
       const id = Number(req.params.id);
       const userId = req.session.userId!;
-      
-      if (Number.isNaN(id)) return res.status(400).json({ message: 'Invalid id' });
-      
-      const existing = await service.get(id);
-      if (!existing) return res.status(404).json({ message: 'Category not found' });
-      
-      // Verificar que la categoría pertenece al usuario y no es una categoría por defecto
-      if (existing.isDefault) {
-        return res.status(403).json({ message: 'No se pueden eliminar las categorías por defecto' });
-      }
-      
-      if (existing.userId !== userId) {
-        return res.status(403).json({ message: 'No tienes permisos para eliminar esta categoría' });
-      }
+      const category = await this.validateIdAndGetCategory(id);
+      this.checkCategoryAccessForDelete(category, userId);
       
       await service.delete(id);
       res.status(204).send();
-    } catch (e) { 
+    } catch (e: any) { 
+      if (e.status) {
+        return res.status(e.status).json({ message: e.message });
+      }
       next(e); 
     }
   }

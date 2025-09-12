@@ -13,7 +13,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 export const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-  if (!req.session.userId || !req.session.user) {
+  if (!req.session || !req.session.userId || !req.session.user) {
     res.status(401).json({ error: 'Debes estar logueado para acceder a este recurso' });
     return;
   }

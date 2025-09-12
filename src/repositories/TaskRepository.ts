@@ -3,7 +3,7 @@ import { AppDataSource } from '../database/data-source';
 import { Task } from '../models/Task';
 
 export class TaskRepository {
-  private repo: Repository<Task>;
+  private readonly repo: Repository<Task>;
 
   constructor() {
     this.repo = AppDataSource.getRepository(Task);

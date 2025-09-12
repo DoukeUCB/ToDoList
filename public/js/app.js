@@ -88,7 +88,13 @@ function esc(str) {
 function taskItemHtml(task) {
   const now = new Date();
   const isExpired = !task.completed && task.endDate && new Date(task.endDate) < now;
-  return `<li data-id="${task.id}" class="${task.completed ? 'completed' : isExpired ? 'expired' : ''} fade-in">
+  let taskClass = '';
+  if (task.completed) {
+    taskClass = 'completed';
+  } else if (isExpired) {
+    taskClass = 'expired';
+  }
+  return `<li data-id="${task.id}" class="${taskClass} fade-in">
     <input type="checkbox" class="toggle" ${task.completed ? 'checked' : ''} />
     <div>
       <div class="title">${esc(task.title)}</div>
@@ -118,16 +124,7 @@ function applyFilter(tasks) {
     filtered = filtered.filter(t => t.category === currentCategoryFilter);
   }
   return filtered;
-
-  const now = new Date();
-  if (currentFilter === 'active') return tasks.filter(t => !t.completed && (!t.endDate || new Date(t.endDate) >= now));
-  if (currentFilter === 'completed') return tasks.filter(t => t.completed);
-  if (currentFilter === 'expired') return tasks.filter(t => !t.completed && t.endDate && new Date(t.endDate) < now);
-  return tasks;
 }
-
-
-
 
 function updateCounters() {
   const total = allTasks.length;
@@ -382,7 +379,8 @@ editForm.addEventListener('submit', async (e) => {
             taskToEditId = null;
             editModal.style.display = 'none';
         } catch (err) {
-            showToast('Error al actualizar la tarea');
+          console.error('Error en edición de tarea:', err);
+          showToast('Error al actualizar la tarea');
         }
     }
 });
@@ -404,6 +402,7 @@ confirmClearBtn.addEventListener('click', async () => {
         renderList();
         showToast('Tareas completadas eliminadas');
     } catch (err) {
+        console.error('Error en limpieza de tareas:', err);
         showToast('Error al eliminar tareas completadas');
     }
     clearModal.style.display = 'none';

@@ -1,5 +1,8 @@
 # Dockerfile para ToDoList App - Optimizado para producción
-FROM node:18-alpine
+FROM node:22:trixie-slim
+
+# Switch to a non-root user for better security
+USER node
 
 # Instalar dependencias del sistema para SQLite
 RUN apk add --no-cache sqlite
@@ -12,20 +15,14 @@ COPY package*.json ./
 COPY tsconfig.json ./
 
 # Instalar dependencias incluyendo las de desarrollo para la compilación
-RUN npm install
+RUN npm install --ignore-scripts
 
 # Copiar el código fuente
 COPY src/ ./src/
 COPY public/ ./public/
 
-# Compilar TypeScript
-RUN npm run build
-
-# Limpiar dependencias de desarrollo
-RUN npm prune --production
-
-# Crear directorio para la base de datos con permisos correctos
-RUN mkdir -p /usr/src/app/data && chmod 755 /usr/src/app/data
+# Compilar TypeScript y crear directorio para la base de datos con permisos correctos
+RUN npm run build && mkdir -p /usr/src/app/data && chmod 755 /usr/src/app/data
 
 # Exponer el puerto
 EXPOSE 3000
