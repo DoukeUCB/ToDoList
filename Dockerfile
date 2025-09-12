@@ -1,5 +1,5 @@
 # Dockerfile para ToDoList App - Optimizado para producción
-FROM node:18-alpine
+FROM node:22:trixie-slim
 
 # Instalar dependencias del sistema para SQLite
 RUN apk add --no-cache sqlite

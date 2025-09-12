@@ -3,7 +3,7 @@ import { AppDataSource } from '../database/data-source';
 import { User } from '../models/User';
 
 export class UserRepository {
-  private repository: Repository<User>;
+  private readonly repository: Repository<User>;
 
   constructor() {
     this.repository = AppDataSource.getRepository(User);

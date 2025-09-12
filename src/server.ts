@@ -10,6 +10,7 @@ import { categoryRoutes } from './routes/categoryRoutes';
 import { notFound, errorHandler } from './middleware/errorHandler';
 
 const app = express();
+app.disable('x-powered-by');
 
 app.use(cors({
   origin: true,
@@ -21,9 +22,9 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 horas
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
@@ -47,7 +48,7 @@ app.get('/views/login.html', (_req: Request, res: Response) => {
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 AppDataSource.initialize().then(() => {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

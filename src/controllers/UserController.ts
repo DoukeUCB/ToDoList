@@ -14,7 +14,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 export class UserController {
-  private userService: UserService;
+  private readonly userService: UserService;
 
   constructor() {
     this.userService = new UserService();
@@ -82,6 +82,7 @@ export class UserController {
         }
       });
     } catch (error) {
+      console.error('Error en login:', error);
       res.status(500).json({ error: 'Error interno del servidor' });
     }
   };
@@ -96,6 +97,7 @@ export class UserController {
         res.json({ message: 'Logout exitoso' });
       });
     } catch (error) {
+      console.error('Error en logout:', error);
       res.status(500).json({ error: 'Error interno del servidor' });
     }
   };
@@ -109,6 +111,7 @@ export class UserController {
 
       res.json({ user: req.session.user });
     } catch (error) {
+      console.error('Error en getCurrentUser:', error);
       res.status(500).json({ error: 'Error interno del servidor' });
     }
   };
@@ -123,6 +126,7 @@ export class UserController {
       
       res.json(usersResponse);
     } catch (error) {
+      console.error('Error en getAllUsers:', error);
       res.status(500).json({ error: 'Error interno del servidor' });
     }
   };
@@ -146,6 +150,7 @@ export class UserController {
       const { password, ...userResponse } = user;
       res.json(userResponse);
     } catch (error) {
+      console.error('Error en getUserById:', error);
       res.status(500).json({ error: 'Error interno del servidor' });
     }
   };
@@ -159,7 +164,6 @@ export class UserController {
         return;
       }
 
-      // Verificar que el usuario solo pueda actualizar su propia información
       if (req.session.userId !== id) {
         res.status(403).json({ error: 'No tienes permisos para actualizar este usuario' });
         return;
@@ -174,7 +178,6 @@ export class UserController {
         return;
       }
 
-      // Actualizar sesión si se cambió información básica
       if (name || userName || mail) {
         req.session.user = {
           id: updatedUser.id,
@@ -219,7 +222,6 @@ export class UserController {
         return;
       }
 
-      // Destruir sesión después de eliminar cuenta
       req.session.destroy((err) => {
         if (err) {
           console.error('Error al destruir sesión:', err);
@@ -228,6 +230,7 @@ export class UserController {
 
       res.json({ message: 'Usuario eliminado exitosamente' });
     } catch (error) {
+      console.error('Error en deleteUser:', error);
       res.status(500).json({ error: 'Error interno del servidor' });
     }
   };

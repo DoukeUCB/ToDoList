@@ -2,7 +2,7 @@ import { CategoryRepository } from '../repositories/CategoryRepository';
 import { Category } from '../models/Category';
 
 export class CategoryService {
-  private repo = new CategoryRepository();
+  private readonly repo = new CategoryRepository();
 
   async listByUser(userId: number): Promise<Category[]> {
     return this.repo.findByUserId(userId);

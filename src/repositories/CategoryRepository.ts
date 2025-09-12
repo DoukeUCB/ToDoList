@@ -2,7 +2,7 @@ import { AppDataSource } from '../database/data-source';
 import { Category } from '../models/Category';
 
 export class CategoryRepository {
-  private repo = AppDataSource.getRepository(Category);
+  private readonly repo = AppDataSource.getRepository(Category);
 
   async findAll(): Promise<Category[]> {
     return this.repo.find({

@@ -2,7 +2,7 @@ import { Task } from '../models/Task';
 import { TaskRepository } from '../repositories/TaskRepository';
 
 export class TaskService {
-  private repository: TaskRepository;
+  private readonly repository: TaskRepository;
 
   constructor(repository = new TaskRepository()) {
     this.repository = repository;
