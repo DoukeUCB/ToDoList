@@ -18,7 +18,7 @@ app.use(cors({
 }));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'douke017',
+  secret: process.env.SESSION_SECRET ?? 'douke017',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -48,7 +48,7 @@ app.get('/views/login.html', (_req: Request, res: Response) => {
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT ?? 3000;
 
 AppDataSource.initialize().then(() => {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
